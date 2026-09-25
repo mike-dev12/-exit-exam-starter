@@ -505,6 +505,76 @@ button:disabled {
   }
 }
 
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin: 28px 0 44px;
+}
+
+.hub-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+  text-decoration: none;
+  color: var(--ink);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.hub-card:hover {
+  border-color: var(--teal);
+  transform: translateY(-1px);
+}
+
+.hub-card-icon {
+  font-size: 1.6rem;
+}
+
+.hub-card h3 {
+  font-size: 1.02rem;
+  margin: 0;
+}
+
+.hub-card p {
+  font-size: 0.87rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.hub-card.disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.hub-card.disabled:hover {
+  border-color: var(--line);
+  transform: none;
+}
+
+.hub-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-top: 4px;
+}
+
+@media (max-width: 620px) {
+  .hub-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Biomedical illustration strip */
 .bio-illustration {
   max-width: 1040px;
