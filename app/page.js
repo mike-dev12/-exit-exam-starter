@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function Home() {
   return (
     <div>
-      <nav className="nav">
+      <nav className="nav reveal reveal-1">
         <span className="wordmark">
           Exit<span>Prep</span>
         </span>
@@ -14,38 +14,49 @@ export default function Home() {
 
       <div className="hero">
         <div>
-          <h1>Walk into your exit exam like you&rsquo;ve already sat it.</h1>
-          <p className="subtitle">
+          <h1 className="reveal reveal-2">
+            Walk into your exit exam like you&rsquo;ve already sat it.
+          </h1>
+          <p className="subtitle reveal reveal-3">
             Practice questions mapped to your course syllabus, scored the
             moment you finish, so you know exactly where you stand before
             results day.
           </p>
 
-          <Link href="/login" className="hero-cta">
-            Start practicing
-          </Link>
-          <Link href="/login" className="hero-secondary">
-            Already have an account?
-          </Link>
+          <div className="reveal reveal-4">
+            <Link href="/login" className="hero-cta">
+              Start practicing
+            </Link>
+            <Link href="/login" className="hero-secondary">
+              Already have an account?
+            </Link>
+          </div>
 
-          <div className="stat-row">
+          <div className="stat-row reveal reveal-5">
             <div>
-              <span className="stat-label">Organized by course, not one long question bank</span>
+              <span className="stat-label">
+                Organized by course, not one long question bank
+              </span>
             </div>
             <div>
-              <span className="stat-label">Results scored and saved the moment you submit</span>
+              <span className="stat-label">
+                Results scored and saved the moment you submit
+              </span>
             </div>
             <div>
-              <span className="stat-label">Set by your own lecturers, not generic question banks</span>
+              <span className="stat-label">
+                Set by your own lecturers, not generic question banks
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="hero-art">
+        <div className="hero-art reveal reveal-6">
           <svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="1" y="1" width="298" height="298" rx="10" fill="#ffffff" stroke="#d9dfd8" />
             <circle cx="150" cy="130" r="78" fill="none" stroke="#d9dfd8" strokeWidth="12" />
             <circle
+              className="ring-progress"
               cx="150"
               cy="130"
               r="78"
@@ -54,7 +65,6 @@ export default function Home() {
               strokeWidth="12"
               strokeLinecap="round"
               strokeDasharray="490"
-              strokeDashoffset="98"
               transform="rotate(-90 150 130)"
             />
             <text x="150" y="122" textAnchor="middle" fontSize="34" fontWeight="600" fill="#16211d" fontFamily="Georgia, serif">
