@@ -58,7 +58,8 @@ export default function CourseMocks() {
       ))}
 
       <button
-        style={{ background: '#666', marginTop: 12 }}
+        className="btn-muted"
+        style={{ marginTop: 12 }}
         onClick={() => router.push('/courses')}
       >
         Back to My Courses

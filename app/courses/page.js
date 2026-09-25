@@ -116,13 +116,14 @@ export default function Courses() {
       })}
 
       <Link href="/results">
-        <button style={{ background: '#0f766e', marginTop: 10 }}>
+        <button className="btn-outline" style={{ marginTop: 10 }}>
           My Results
         </button>
       </Link>
 
       <button
-        style={{ background: '#666', marginTop: 12 }}
+        className="btn-muted"
+        style={{ marginTop: 12 }}
         onClick={() => router.push('/dashboard')}
       >
         Back to Dashboard

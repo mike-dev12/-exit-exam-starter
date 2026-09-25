@@ -176,7 +176,8 @@ export default function AdminUserDetail() {
       ))}
 
       <button
-        style={{ background: '#666', marginTop: 16 }}
+        className="btn-muted"
+        style={{ marginTop: 16 }}
         onClick={() => router.push('/admin')}
       >
         Back to Admin Dashboard

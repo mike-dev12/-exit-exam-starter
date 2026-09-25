@@ -191,7 +191,8 @@ export default function LecturerMock() {
               </button>
               <button
                 onClick={() => setEditingId(null)}
-                style={{ background: '#666', marginTop: 8 }}
+                className="btn-muted"
+                style={{ marginTop: 8 }}
               >
                 Cancel
               </button>
@@ -205,7 +206,8 @@ export default function LecturerMock() {
               <button onClick={() => startEdit(q)}>Edit Answer/Explanation</button>
               <button
                 onClick={() => handleDelete(q.id)}
-                style={{ background: '#dc2626', marginTop: 8 }}
+                className="btn-danger"
+                style={{ marginTop: 8 }}
               >
                 Delete
               </button>
@@ -268,7 +270,8 @@ export default function LecturerMock() {
       </form>
 
       <button
-        style={{ background: '#666', marginTop: 12 }}
+        className="btn-muted"
+        style={{ marginTop: 12 }}
         onClick={() => router.back()}
       >
         Back
