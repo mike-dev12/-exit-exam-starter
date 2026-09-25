@@ -8,6 +8,8 @@ import { supabase } from '../../../../lib/supabaseClient';
 export default function LecturerCourse() {
   const [course, setCourse] = useState(null);
   const [mocks, setMocks] = useState([]);
+  const [questionCount, setQuestionCount] = useState(0);
+  const [roster, setRoster] = useState([]);
   const [newMockTitle, setNewMockTitle] = useState('');
   const [newMockDuration, setNewMockDuration] = useState(30);
   const [error, setError] = useState('');
@@ -57,7 +59,14 @@ export default function LecturerCourse() {
         .single();
       setCourse(courseData);
 
-      loadMocks();
+      const { data: questionsData } = await supabase
+        .from('questions')
+        .select('id')
+        .eq('course_id', courseId);
+      setQuestionCount((questionsData || []).length);
+
+      await loadMocks();
+      await loadRoster();
       setLoading(false);
     }
     load();
@@ -70,6 +79,55 @@ export default function LecturerCourse() {
       .eq('course_id', courseId)
       .order('title');
     setMocks(data || []);
+  }
+
+  async function loadRoster() {
+    const { data: scRows } = await supabase
+      .from('student_courses')
+      .select('student_id, profiles ( id, full_name )')
+      .eq('course_id', courseId);
+
+    const students = (scRows || [])
+      .map((r) => r.profiles)
+      .filter(Boolean);
+
+    const { data: mocksData } = await supabase
+      .from('mocks')
+      .select('id')
+      .eq('course_id', courseId);
+    const mockIds = (mocksData || []).map((m) => m.id);
+
+    let results = [];
+    if (mockIds.length > 0) {
+      const { data } = await supabase
+        .from('results')
+        .select('student_id, score, total_questions')
+        .in('mock_id', mockIds);
+      results = data || [];
+    }
+
+    const byStudent = {};
+    results.forEach((r) => {
+      if (!byStudent[r.student_id]) byStudent[r.student_id] = [];
+      byStudent[r.student_id].push((r.score / r.total_questions) * 100);
+    });
+
+    const rosterWithStats = students.map((s) => {
+      const scores = byStudent[s.id] || [];
+      const avg =
+        scores.length > 0
+          ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+          : null;
+      return {
+        id: s.id,
+        name: s.full_name || '(no name)',
+        attempts: scores.length,
+        avg,
+      };
+    });
+
+    rosterWithStats.sort((a, b) => a.name.localeCompare(b.name));
+    setRoster(rosterWithStats);
   }
 
   async function handleAddMock(e) {
@@ -95,24 +153,79 @@ export default function LecturerCourse() {
   if (loading || !authorized) return <div className="container">Loading...</div>;
 
   return (
-    <div className="container">
-      <h1>{course ? course.name : 'Course'}</h1>
-      <p className="subtitle">Manage mocks for this course.</p>
+    <div className="dashboard">
+      <div className="dashboard-header">
+        <h1>{course ? course.name : 'Course'}</h1>
+        <p className="subtitle">Manage this course.</p>
+      </div>
 
-      <h3 style={{ marginTop: 24 }}>Mocks</h3>
+      <div className="hub-grid">
+        <a href="#mocks" className="hub-card">
+          <span className="hub-card-icon">📝</span>
+          <h3>Questions</h3>
+          <p>{questionCount} question{questionCount === 1 ? '' : 's'} total</p>
+        </a>
+
+        <a href="#mocks" className="hub-card">
+          <span className="hub-card-icon">🗂️</span>
+          <h3>Mock Exams</h3>
+          <p>
+            {mocks.length === 0
+              ? 'No mock exams yet'
+              : `${mocks.length} mock exam${mocks.length === 1 ? '' : 's'}`}
+          </p>
+        </a>
+
+        <div className="hub-card disabled">
+          <span className="hub-card-icon">📖</span>
+          <h3>Study Materials</h3>
+          <p>Upload notes and key concepts</p>
+          <span className="hub-badge">Coming soon</span>
+        </div>
+
+        <div className="hub-card disabled">
+          <span className="hub-card-icon">🏷️</span>
+          <h3>Topics</h3>
+          <p>Tag questions by topic</p>
+          <span className="hub-badge">Coming soon</span>
+        </div>
+
+        <a href="#performance" className="hub-card">
+          <span className="hub-card-icon">📊</span>
+          <h3>Student Performance</h3>
+          <p>
+            {roster.length === 0
+              ? 'No students enrolled yet'
+              : `${roster.length} student${roster.length === 1 ? '' : 's'} enrolled`}
+          </p>
+        </a>
+      </div>
+
+      <h2 className="section-heading" id="mocks">
+        Mock Exams
+      </h2>
       {mocks.length === 0 && <p className="subtitle">No mocks yet.</p>}
-      {mocks.map((mock) => (
-        <Link key={mock.id} href={`/lecturer/mocks/${mock.id}`}>
-          <button style={{ marginBottom: 10, textAlign: 'left' }}>
-            {mock.title}
-            <span style={{ float: 'right', fontWeight: 'normal' }}>
-              {mock.duration_minutes} min
-            </span>
-          </button>
-        </Link>
-      ))}
+      {mocks.length > 0 && (
+        <div className="course-list" style={{ marginBottom: 24 }}>
+          {mocks.map((mock) => (
+            <div key={mock.id} className="course-row">
+              <div className="course-row-top">
+                <div>
+                  <div className="course-row-name">{mock.title}</div>
+                  <div className="course-row-progress">
+                    {mock.duration_minutes} min
+                  </div>
+                </div>
+                <Link href={`/lecturer/mocks/${mock.id}`} className="course-row-link">
+                  Manage →
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-      <h3 style={{ marginTop: 24 }}>Add a Mock</h3>
+      <h3 style={{ marginTop: 8 }}>Add a Mock</h3>
       {error && <div className="error">{error}</div>}
       <form onSubmit={handleAddMock}>
         <input
@@ -132,9 +245,38 @@ export default function LecturerCourse() {
         <button type="submit">Add Mock</button>
       </form>
 
+      <h2 className="section-heading" id="performance" style={{ marginTop: 40 }}>
+        Student Performance
+      </h2>
+      {roster.length === 0 ? (
+        <p className="subtitle">No students enrolled in this course yet.</p>
+      ) : (
+        <div className="course-list">
+          {roster.map((s) => (
+            <div key={s.id} className="course-row">
+              <div className="course-row-top">
+                <div>
+                  <div className="course-row-name">{s.name}</div>
+                  <div className="course-row-progress">
+                    {s.attempts > 0
+                      ? `${s.attempts} attempt${s.attempts === 1 ? '' : 's'} · ${s.avg}% average`
+                      : 'No attempts yet'}
+                  </div>
+                </div>
+              </div>
+              {s.attempts > 0 && (
+                <div className="progress-bar-track">
+                  <div className="progress-bar-fill" style={{ width: `${s.avg}%` }} />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       <button
         className="btn-muted"
-        style={{ marginTop: 12 }}
+        style={{ marginTop: 24 }}
         onClick={() => router.push('/lecturer')}
       >
         Back to Lecturer Dashboard
