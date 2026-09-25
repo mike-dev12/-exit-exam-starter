@@ -286,6 +286,26 @@ button:disabled {
   margin: 0;
 }
 
+/* Biomedical illustration strip */
+.bio-illustration {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.bio-illustration-inner {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 28px;
+}
+
+.bio-illustration-inner svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 /* Feature cards section */
 .features-section {
   max-width: 1040px;
