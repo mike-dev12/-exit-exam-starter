@@ -72,7 +72,7 @@ export default function Home() {
           </p>
 
           <div className="reveal reveal-4">
-            <Link href="/login" className="hero-cta">
+            <Link href="/login?mode=signup" className="hero-cta">
               Start Preparing
             </Link>
             <Link href="/login" className="hero-secondary">
