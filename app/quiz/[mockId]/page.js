@@ -210,6 +210,7 @@ export default function MockQuiz() {
 
         {isWrong && (
           <div
+            className="explanation-box"
             style={{
               marginTop: 12,
               padding: 12,
