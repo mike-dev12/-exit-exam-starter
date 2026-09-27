@@ -87,7 +87,14 @@ export default function Courses() {
     load();
   }, [router]);
 
-  if (loading) return <div className="container">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+        <span>Loading your courses...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
@@ -95,10 +102,13 @@ export default function Courses() {
       <p className="subtitle">Courses assigned to you.</p>
 
       {courses.length === 0 && (
-        <p className="subtitle">
-          No courses assigned yet. Ask your administrator to assign you to a
-          course.
-        </p>
+        <div className="empty-state">
+          <span className="empty-state-icon">📚</span>
+          <span className="empty-state-title">No courses yet</span>
+          <span className="empty-state-desc">
+            Ask your administrator to assign you to a course.
+          </span>
+        </div>
       )}
 
       {courses.map((course) => {

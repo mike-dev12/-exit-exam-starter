@@ -29,7 +29,14 @@ export default function MyResults() {
     load();
   }, [router]);
 
-  if (loading) return <div className="container">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+        <span>Loading your results...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="container" style={{ maxWidth: 560 }}>
@@ -37,7 +44,13 @@ export default function MyResults() {
       <p className="subtitle">Your past quiz attempts.</p>
 
       {results.length === 0 && (
-        <p className="subtitle">No attempts yet. Take a quiz to see results here.</p>
+        <div className="empty-state">
+          <span className="empty-state-icon">📊</span>
+          <span className="empty-state-title">No attempts yet</span>
+          <span className="empty-state-desc">
+            Take a quiz to see your results appear here.
+          </span>
+        </div>
       )}
 
       {results.map((r) => {

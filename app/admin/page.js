@@ -72,7 +72,14 @@ export default function AdminHome() {
     loadCourses();
   }
 
-  if (checking) return <div className="container">Loading...</div>;
+  if (checking) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+        <span>Loading...</span>
+      </div>
+    );
+  }
 
   if (!authorized) {
     return (
@@ -92,7 +99,13 @@ export default function AdminHome() {
       <p className="subtitle">Manage courses and assign users to them.</p>
 
       <h3 style={{ marginTop: 24 }}>Courses</h3>
-      {courses.length === 0 && <p className="subtitle">No courses yet.</p>}
+      {courses.length === 0 && (
+        <div className="empty-state">
+          <span className="empty-state-icon">🏫</span>
+          <span className="empty-state-title">No courses yet</span>
+          <span className="empty-state-desc">Add your first course below.</span>
+        </div>
+      )}
       {courses.map((course) => (
         <div key={course.id} className="question-card">
           {course.name}

@@ -85,7 +85,14 @@ export default function LecturerHome() {
     load();
   }, [router]);
 
-  if (checking) return <div className="container">Loading...</div>;
+  if (checking) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+        <span>Loading...</span>
+      </div>
+    );
+  }
 
   if (!profile) {
     return (
@@ -138,9 +145,13 @@ export default function LecturerHome() {
 
       <h2 className="section-heading">My Courses</h2>
       {courses.length === 0 ? (
-        <p className="subtitle" style={{ marginBottom: 36 }}>
-          No courses assigned to you yet. Ask your administrator.
-        </p>
+        <div className="empty-state">
+          <span className="empty-state-icon">🎓</span>
+          <span className="empty-state-title">No courses assigned</span>
+          <span className="empty-state-desc">
+            Ask your administrator to assign you as a lecturer for a course.
+          </span>
+        </div>
       ) : (
         <div className="course-list">
           {courses.map((course) => (

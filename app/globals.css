@@ -719,3 +719,166 @@ button:disabled {
     animation: none;
   }
 }
+
+/* ============================= */
+/* Top navigation bar            */
+/* ============================= */
+.topnav {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.topnav-placeholder {
+  height: 57px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.topnav-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.topnav-logo {
+  font-family: var(--font-serif), serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.topnav-logo span {
+  color: var(--teal);
+}
+
+.topnav-links {
+  display: flex;
+  gap: 18px;
+  flex: 1;
+}
+
+.topnav-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.topnav-link:hover {
+  color: var(--teal);
+}
+
+.topnav-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.topnav-user {
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topnav-logout {
+  width: auto;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  background: var(--muted);
+}
+
+.topnav-logout:hover {
+  background: #4c5952;
+}
+
+@media (max-width: 700px) {
+  .topnav-inner {
+    flex-wrap: wrap;
+    gap: 10px 18px;
+  }
+  .topnav-links {
+    order: 3;
+    width: 100%;
+    gap: 14px;
+  }
+  .topnav-user {
+    display: none;
+  }
+}
+
+/* ============================= */
+/* Loading spinner                */
+/* ============================= */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 90px 24px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--line);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+/* ============================= */
+/* Empty states                   */
+/* ============================= */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 48px 24px;
+  background: var(--surface);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+}
+
+.empty-state-icon {
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+
+.empty-state-title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.empty-state-desc {
+  color: var(--muted);
+  font-size: 0.88rem;
+  max-width: 40ch;
+}

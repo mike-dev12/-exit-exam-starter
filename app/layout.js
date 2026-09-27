@@ -1,5 +1,6 @@
 import { Source_Serif_4, IBM_Plex_Sans } from 'next/font/google';
 import './globals.css';
+import TopNav from './components/TopNav';
 
 const serif = Source_Serif_4({
   subsets: ['latin'],
@@ -24,7 +25,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${serif.variable} ${sans.variable}`}>
-      <body>{children}</body>
+      <body>
+        <TopNav />
+        {children}
+      </body>
     </html>
   );
 }

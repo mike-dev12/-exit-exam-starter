@@ -112,7 +112,14 @@ export default function Dashboard() {
     router.push('/login');
   }
 
-  if (loading) return <div className="container">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+        <span>Loading your dashboard...</span>
+      </div>
+    );
+  }
 
   const firstName = (profile?.full_name || user.email).split(' ')[0];
 
@@ -159,10 +166,13 @@ export default function Dashboard() {
 
       <h2 className="section-heading">My Courses</h2>
       {courses.length === 0 ? (
-        <p className="subtitle" style={{ marginBottom: 36 }}>
-          No courses assigned yet. Ask your administrator to assign you to a
-          course.
-        </p>
+        <div className="empty-state">
+          <span className="empty-state-icon">📚</span>
+          <span className="empty-state-title">No courses yet</span>
+          <span className="empty-state-desc">
+            Ask your administrator to assign you to a course to get started.
+          </span>
+        </div>
       ) : (
         <div className="course-list">
           {courses.map((course) => {
