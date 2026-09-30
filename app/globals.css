@@ -1,17 +1,37 @@
 :root {
-  --paper: #f5f7f4;
+  /* Backgrounds */
+  --paper: #f6f9f7;
   --surface: #ffffff;
-  --ink: #17211f;
-  --muted: #61706b;
-  --line: #dce3df;
-  --teal: #087f6b;
-  --teal-deep: #066a5a;
-  --amber: #d98b32;
-  --success: #2e8b57;
-  --success-bg: #e3f2e9;
-  --danger: #b23a2e;
-  --danger-bg: #fbeae7;
-  --radius: 8px;
+  --bg-secondary: #eef5f2;
+
+  /* Text */
+  --ink: #102a2a;
+  --muted: #5f7370;
+  --muted-2: #8a9a97;
+
+  /* Borders */
+  --line: #dce8e4;
+
+  /* Primary: teal */
+  --teal: #0f766e;
+  --teal-deep: #115e59;
+  --teal-light: #ccfbf1;
+
+  /* Secondary: biomedical blue */
+  --blue: #2563eb;
+  --blue-light: #dbeafe;
+
+  /* Accent */
+  --cyan: #06b6d4;
+
+  /* Status colors */
+  --amber: #f59e0b;
+  --success: #16a34a;
+  --success-bg: #dcfce7;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+
+  --radius: 10px;
 }
 
 * {
@@ -27,7 +47,7 @@ body {
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-sans), 'IBM Plex Sans', system-ui, sans-serif;
+  font-family: var(--font-sans), 'Inter', system-ui, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -39,11 +59,12 @@ a {
 h1,
 h2,
 h3 {
-  font-family: var(--font-serif), 'Source Serif 4', Georgia, serif;
-  font-weight: 600;
+  font-family: var(--font-heading), 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 700;
   line-height: 1.15;
   margin: 0 0 8px;
   color: var(--ink);
+  letter-spacing: -0.01em;
 }
 
 h1 {
@@ -207,7 +228,7 @@ button:disabled {
 }
 
 .wordmark {
-  font-family: var(--font-serif), serif;
+  font-family: var(--font-heading), sans-serif;
   font-weight: 600;
   font-size: 1.15rem;
   color: var(--ink);
@@ -366,7 +387,7 @@ button:disabled {
 }
 
 .stats-big-num {
-  font-family: var(--font-serif), serif;
+  font-family: var(--font-heading), sans-serif;
   font-size: 2.3rem;
   font-weight: 600;
   color: var(--teal);
@@ -392,7 +413,7 @@ button:disabled {
 }
 
 .stats-num {
-  font-family: var(--font-serif), serif;
+  font-family: var(--font-heading), sans-serif;
   font-weight: 600;
   font-size: 1.3rem;
   color: var(--ink);
@@ -744,7 +765,7 @@ button:disabled {
 }
 
 .topnav-logo {
-  font-family: var(--font-serif), serif;
+  font-family: var(--font-heading), sans-serif;
   font-weight: 600;
   font-size: 1.05rem;
   color: var(--ink);

@@ -1,15 +1,15 @@
-import { Source_Serif_4, IBM_Plex_Sans } from 'next/font/google';
+import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import TopNav from './components/TopNav';
 
-const serif = Source_Serif_4({
+const heading = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  weight: ['500', '600', '700'],
-  variable: '--font-serif',
+  weight: ['600', '700', '800'],
+  variable: '--font-heading',
   display: 'swap',
 });
 
-const sans = IBM_Plex_Sans({
+const sans = Inter({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-sans',
@@ -17,14 +17,14 @@ const sans = IBM_Plex_Sans({
 });
 
 export const metadata = {
-  title: 'Exit Prep — Biomedical Exit Exam Practice',
+  title: 'ExitPrep — Biomedical Engineering Exit Exam Preparation',
   description:
-    'Course-mapped practice questions and mock exams for final-year biomedical students preparing for their exit exam.',
+    'Course-mapped practice questions and mock exams for final-year biomedical engineering students preparing for their exit exam.',
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
+    <html lang="en" className={`${heading.variable} ${sans.variable}`}>
       <body>
         <TopNav />
         {children}
