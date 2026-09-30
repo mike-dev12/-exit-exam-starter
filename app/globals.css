@@ -258,6 +258,32 @@ button:disabled {
   color: var(--ink);
 }
 
+/* Hero section wrapper: carries the one gradient moment on the page */
+.hero-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: -180px;
+  right: -120px;
+  width: 560px;
+  height: 560px;
+  background: radial-gradient(circle, var(--teal-light) 0%, var(--blue-light) 45%, transparent 72%);
+  opacity: 0.55;
+  filter: blur(10px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-section .nav,
+.hero-section .hero {
+  position: relative;
+  z-index: 1;
+}
+
 /* Hero */
 .hero {
   max-width: 1040px;
@@ -616,6 +642,52 @@ button:disabled {
   display: block;
 }
 
+/* The illustration is the one place motion runs continuously: a signal
+   traveling the ECG trace and lighting up circuit nodes in sequence,
+   like a live monitor rather than a static diagram. */
+.ecg-path {
+  stroke-dasharray: 46 720;
+  animation: ecg-travel 3.6s linear infinite;
+}
+
+.ecg-path-small {
+  stroke-dasharray: 20 200;
+  animation: ecg-travel 2.4s linear infinite;
+}
+
+@keyframes ecg-travel {
+  from {
+    stroke-dashoffset: 766;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.circuit-dot {
+  animation: dot-pulse 2.8s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    r: 3;
+  }
+  50% {
+    opacity: 1;
+    r: 4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ecg-path,
+  .ecg-path-small,
+  .circuit-dot {
+    animation: none;
+  }
+}
+
 /* Feature cards section */
 .features-section {
   max-width: 1040px;
@@ -635,10 +707,34 @@ button:disabled {
   gap: 36px;
 }
 
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px 26px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -12px rgba(15, 118, 110, 0.28);
+  border-color: var(--teal-light);
+}
+
+.feature-card .feature-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--teal-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
 .feature-card .feature-icon {
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   display: block;
-  margin-bottom: 12px;
 }
 
 .feature-card h3 {

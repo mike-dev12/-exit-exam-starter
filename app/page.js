@@ -44,6 +44,7 @@ const featureCards = [
 export default function Home() {
   return (
     <div>
+      <div className="hero-section">
       <header>
         <div className="nav reveal reveal-1">
           <div>
@@ -94,6 +95,7 @@ export default function Home() {
           ))}
         </div>
       </div>
+      </div>
 
       <div className="bio-illustration">
         <div className="bio-illustration-inner">
@@ -105,6 +107,7 @@ export default function Home() {
           >
             {/* ECG waveform */}
             <path
+              className="ecg-path"
               d="M40,90 L110,90 L120,60 L135,130 L150,40 L165,95 L190,90 L260,90 L270,75 L280,105 L290,90 L320,90"
               stroke="#087f6b"
               strokeWidth="2.2"
@@ -117,6 +120,7 @@ export default function Home() {
             {/* Monitor / device */}
             <rect x="360" y="50" width="90" height="60" rx="6" stroke="#61706b" strokeWidth="1.6" fill="#f5f7f4" />
             <path
+              className="ecg-path-small"
               d="M372,80 L385,80 L390,68 L398,92 L405,80 L420,80"
               stroke="#087f6b"
               strokeWidth="1.6"
@@ -142,14 +146,14 @@ export default function Home() {
               strokeWidth="1.6"
               fill="none"
             />
-            <circle cx="680" cy="90" r="3" fill="#61706b" />
-            <circle cx="680" cy="60" r="3" fill="#61706b" />
-            <circle cx="760" cy="60" r="3" fill="#087f6b" />
-            <circle cx="760" cy="110" r="3" fill="#61706b" />
-            <circle cx="840" cy="110" r="3" fill="#61706b" />
-            <circle cx="840" cy="75" r="3" fill="#087f6b" />
-            <circle cx="920" cy="75" r="3" fill="#61706b" />
-            <circle cx="920" cy="95" r="3" fill="#61706b" />
+            <circle className="circuit-dot" style={{ animationDelay: '0s' }} cx="680" cy="90" r="3" fill="#61706b" />
+            <circle className="circuit-dot" style={{ animationDelay: '0.2s' }} cx="680" cy="60" r="3" fill="#61706b" />
+            <circle className="circuit-dot" style={{ animationDelay: '0.4s' }} cx="760" cy="60" r="3" fill="#087f6b" />
+            <circle className="circuit-dot" style={{ animationDelay: '0.6s' }} cx="760" cy="110" r="3" fill="#61706b" />
+            <circle className="circuit-dot" style={{ animationDelay: '0.8s' }} cx="840" cy="110" r="3" fill="#61706b" />
+            <circle className="circuit-dot" style={{ animationDelay: '1s' }} cx="840" cy="75" r="3" fill="#087f6b" />
+            <circle className="circuit-dot" style={{ animationDelay: '1.2s' }} cx="920" cy="75" r="3" fill="#61706b" />
+            <circle className="circuit-dot" style={{ animationDelay: '1.4s' }} cx="920" cy="95" r="3" fill="#61706b" />
           </svg>
         </div>
       </div>
@@ -159,7 +163,9 @@ export default function Home() {
         <div className="features-grid">
           {featureCards.map((f) => (
             <div className="feature-card" key={f.title}>
-              <span className="feature-icon">{f.icon}</span>
+              <span className="feature-icon-wrap">
+                <span className="feature-icon">{f.icon}</span>
+              </span>
               <h3>{f.title}</h3>
               <p>{f.desc}</p>
             </div>
