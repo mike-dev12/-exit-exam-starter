@@ -120,28 +120,28 @@ function LoginForm() {
         </div>
 
         <div className="auth-brand-content">
-          <div className="auth-logo">
+          <div className="auth-logo reveal reveal-1">
             <span className="wordmark auth-wordmark">
               Exit<span>Prep</span>
             </span>
             <div className="auth-logo-tag">Biomedical Engineering</div>
           </div>
 
-          <div className="auth-eyebrow">Exam Preparation Platform</div>
+          <div className="auth-eyebrow reveal reveal-2">Exam Preparation Platform</div>
 
-          <h1 className="auth-headline">
+          <h1 className="auth-headline reveal reveal-3">
             Prepare with confidence,
             <br />
             <span>be ready on exam day.</span>
           </h1>
 
-          <p className="auth-brand-text">
+          <p className="auth-brand-text reveal reveal-4">
             Practice course-based questions, work through practical scenarios, take
             realistic mock exams, and track your readiness — built for final-year
             Biomedical Engineering students.
           </p>
 
-          <div className="auth-pills">
+          <div className="auth-pills reveal reveal-5">
             {brandPills.map((p) => (
               <span className="auth-pill" key={p}>
                 {p}
@@ -154,7 +154,7 @@ function LoginForm() {
       </div>
 
       <div className="auth-panel">
-        <div className="auth-card">
+        <div className="auth-card reveal reveal-6">
           <h2>{isSignup ? 'Create account' : 'Sign in'}</h2>
           <p className="auth-card-subtitle">
             {isSignup
@@ -166,7 +166,7 @@ function LoginForm() {
 
           <form onSubmit={handleSubmit} className="auth-form">
             {isSignup && (
-              <>
+              <div className="auth-extra-fields">
                 <label className="auth-label" htmlFor="fullName">
                   Full name
                 </label>
@@ -222,7 +222,7 @@ function LoginForm() {
                   value={year}
                   onChange={(e) => setYear(e.target.value)}
                 />
-              </>
+              </div>
             )}
 
             <label className="auth-label" htmlFor="email">
