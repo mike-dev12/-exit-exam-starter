@@ -151,6 +151,20 @@ function LoginForm() {
           </div>
         </div>
 
+        <div className="auth-signal" aria-hidden="true">
+          <svg viewBox="0 0 400 50" preserveAspectRatio="none">
+            <path
+              className="ecg-path"
+              d="M0,25 L130,25 L142,6 L156,44 L168,25 L260,25 L272,10 L284,40 L296,25 L400,25"
+              stroke="rgba(255,255,255,0.3)"
+              strokeWidth="1.6"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+
         <div className="auth-brand-footer">© 2026 ExitPrep. All rights reserved.</div>
       </div>
 

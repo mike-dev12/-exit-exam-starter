@@ -114,7 +114,7 @@ p.subtitle {
 
 .auth-ring {
   position: absolute;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   animation: ring-pulse 6s ease-in-out infinite;
 }
@@ -269,10 +269,25 @@ p.subtitle {
   color: white;
 }
 
+.auth-signal {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  height: 36px;
+  margin-top: 8px;
+}
+
+.auth-signal svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .auth-brand-footer {
   position: relative;
   z-index: 1;
-  margin-top: 40px;
+  margin-top: 24px;
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.55);
 }
@@ -288,18 +303,32 @@ p.subtitle {
   padding: 40px 24px;
 }
 
-.auth-panel::before {
+.auth-panel::before,
+.auth-panel::after {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 640px;
-  height: 640px;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, var(--teal-light) 0%, var(--blue-light) 50%, transparent 72%);
-  opacity: 0.45;
-  filter: blur(10px);
+  border-radius: 50%;
   pointer-events: none;
+}
+
+.auth-panel::before {
+  top: 14%;
+  left: 58%;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, var(--teal-light) 0%, transparent 68%);
+  opacity: 0.9;
+  filter: blur(6px);
+}
+
+.auth-panel::after {
+  bottom: 8%;
+  left: 30%;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, var(--blue-light) 0%, transparent 70%);
+  opacity: 0.8;
+  filter: blur(6px);
 }
 
 .auth-card {
