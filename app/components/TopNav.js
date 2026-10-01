@@ -52,7 +52,7 @@ export default function TopNav() {
     <div className="topnav">
       <div className="topnav-inner">
         <Link href="/dashboard" className="topnav-logo">
-          Exit<span>Prep</span>
+          Bio<span>Path</span>
         </Link>
 
         <div className="topnav-links">

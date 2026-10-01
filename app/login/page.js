@@ -24,6 +24,23 @@ function LockIcon() {
   );
 }
 
+function BrandMark() {
+  return (
+    <div className="brand-mark">
+      <svg viewBox="0 0 48 48" width="26" height="26">
+        <path
+          d="M4,24 L13,24 L17,10 L24,40 L29,24 L44,24"
+          fill="none"
+          stroke="#0F766E"
+          strokeWidth="3.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+}
+
 function EyeIcon({ open }) {
   return open ? (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -122,10 +139,13 @@ function LoginForm() {
 
         <div className="auth-brand-content">
           <div className="auth-logo reveal reveal-1">
-            <span className="auth-wordmark">
-              Exit<span>Prep</span>
-            </span>
-            <div className="auth-logo-tag">Biomedical Engineering</div>
+            <BrandMark />
+            <div>
+              <span className="auth-wordmark">
+                Bio<span>Path</span>
+              </span>
+              <div className="auth-logo-tag">Biomedical Engineering</div>
+            </div>
           </div>
 
           <div className="auth-eyebrow reveal reveal-2">Exam Preparation Platform</div>
@@ -165,7 +185,7 @@ function LoginForm() {
           </svg>
         </div>
 
-        <div className="auth-brand-footer">© 2026 ExitPrep. All rights reserved.</div>
+        <div className="auth-brand-footer">© 2026 BioPath. All rights reserved.</div>
       </div>
 
       <div className="auth-panel">
@@ -251,7 +271,7 @@ function LoginForm() {
                 id="email"
                 className="has-icon"
                 type="email"
-                placeholder="you@exitprep.app"
+                placeholder="you@biopath.app"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
