@@ -100,10 +100,10 @@ p.subtitle {
   overflow: hidden;
   background: var(--teal-deep);
   color: white;
-  padding: 56px 64px;
+  padding: 48px 64px 40px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  min-height: 100vh;
 }
 
 .auth-brand-rings {
@@ -164,42 +164,57 @@ p.subtitle {
 }
 
 .auth-ring-1 {
-  width: 420px;
-  height: 420px;
-  top: -80px;
-  right: -60px;
+  width: 560px;
+  height: 560px;
+  top: -140px;
+  right: -140px;
 }
 
 .auth-ring-2 {
-  width: 280px;
-  height: 280px;
-  top: 60px;
-  right: 60px;
+  width: 380px;
+  height: 380px;
+  top: 40px;
+  right: 20px;
 }
 
 .auth-ring-3 {
-  width: 160px;
-  height: 160px;
-  top: 160px;
-  right: 180px;
+  width: 220px;
+  height: 220px;
+  top: 140px;
+  right: 160px;
+}
+
+.auth-ring-4 {
+  width: 320px;
+  height: 320px;
+  bottom: -120px;
+  left: -100px;
+  animation-delay: 3.4s;
 }
 
 .auth-brand-content {
   position: relative;
   z-index: 1;
   max-width: 460px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .auth-logo {
   margin-bottom: 40px;
 }
 
-.auth-wordmark {
-  font-size: 1.3rem;
+.auth-logo .auth-wordmark {
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 600;
+  display: block;
+  font-size: 1.4rem;
   color: white;
 }
 
-.auth-wordmark span {
+.auth-logo .auth-wordmark span {
   color: var(--teal-light);
 }
 
@@ -264,6 +279,8 @@ p.subtitle {
 
 /* Right: sign-in card */
 .auth-panel {
+  position: relative;
+  overflow: hidden;
   background: var(--paper);
   display: flex;
   align-items: center;
@@ -271,7 +288,23 @@ p.subtitle {
   padding: 40px 24px;
 }
 
+.auth-panel::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 640px;
+  height: 640px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, var(--teal-light) 0%, var(--blue-light) 50%, transparent 72%);
+  opacity: 0.45;
+  filter: blur(10px);
+  pointer-events: none;
+}
+
 .auth-card {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 400px;
   background: var(--surface);
@@ -375,9 +408,13 @@ input.has-icon-right {
   .auth-headline {
     font-size: 1.9rem;
   }
+  .auth-brand {
+    min-height: auto;
+  }
   .auth-ring-1,
   .auth-ring-2,
-  .auth-ring-3 {
+  .auth-ring-3,
+  .auth-ring-4 {
     display: none;
   }
 }

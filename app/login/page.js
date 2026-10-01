@@ -117,11 +117,12 @@ function LoginForm() {
           <span className="auth-ring auth-ring-1" />
           <span className="auth-ring auth-ring-2" />
           <span className="auth-ring auth-ring-3" />
+          <span className="auth-ring auth-ring-4" />
         </div>
 
         <div className="auth-brand-content">
           <div className="auth-logo reveal reveal-1">
-            <span className="wordmark auth-wordmark">
+            <span className="auth-wordmark">
               Exit<span>Prep</span>
             </span>
             <div className="auth-logo-tag">Biomedical Engineering</div>
