@@ -149,7 +149,7 @@ export default function AdminUserDetail() {
       </select>
       <button onClick={saveRole}>Save Role</button>
 
-      <h3 style={{ marginTop: 24 }}>Assign as Student (courses they can practice)</h3>
+      <h3 style={{ marginTop: 24 }}>Student access (every course is added automatically; untick one to hide it from this student)</h3>
       {allCourses.map((c) => (
         <label key={c.id} style={{ display: 'block', marginBottom: 6 }}>
           <input

@@ -99,14 +99,14 @@ export default function Courses() {
   return (
     <div className="container">
       <h1>Courses</h1>
-      <p className="subtitle">Courses assigned to you.</p>
+      <p className="subtitle">All available courses.</p>
 
       {courses.length === 0 && (
         <div className="empty-state">
           <span className="empty-state-icon">📚</span>
           <span className="empty-state-title">No courses yet</span>
           <span className="empty-state-desc">
-            Ask your administrator to assign you to a course.
+            Courses appear here automatically as soon as they are added.
           </span>
         </div>
       )}

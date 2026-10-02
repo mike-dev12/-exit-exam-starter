@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
+import { MATERIALS_BUCKET } from '../../lib/materials';
 
 export default function AdminHome() {
   const [authorized, setAuthorized] = useState(false);
@@ -12,6 +13,8 @@ export default function AdminHome() {
   const [newCourseName, setNewCourseName] = useState('');
   const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
+  const [courseListError, setCourseListError] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -72,6 +75,63 @@ export default function AdminHome() {
     loadCourses();
   }
 
+  async function handleDeleteCourse(course) {
+    const confirmed = window.confirm(
+      `Delete "${course.name}"?\n\n` +
+        'This also permanently deletes its mock exams, questions, and every ' +
+        "student's results for this course. This cannot be undone."
+    );
+    if (!confirmed) return;
+
+    setCourseListError('');
+    setDeletingId(course.id);
+
+    // Remember this course's uploaded files so we can remove them from
+    // storage afterwards (the database rows are deleted automatically).
+    // If the materials table doesn't exist yet this simply returns nothing.
+    const { data: fileRows } = await supabase
+      .from('materials')
+      .select('file_path')
+      .eq('course_id', course.id);
+
+    const { error: deleteError } = await supabase
+      .from('courses')
+      .delete()
+      .eq('id', course.id);
+
+    if (deleteError) {
+      setDeletingId(null);
+      setCourseListError(deleteError.message);
+      return;
+    }
+
+    // Supabase gives NO error when row-level security silently blocks a
+    // delete, so check that the course is really gone before saying so.
+    const { data: stillThere } = await supabase
+      .from('courses')
+      .select('id')
+      .eq('id', course.id)
+      .maybeSingle();
+
+    setDeletingId(null);
+
+    if (stillThere) {
+      setCourseListError(
+        'The course was not deleted. Run supabase/auto-enroll-and-delete.sql ' +
+          'in the Supabase SQL Editor first, then try again.'
+      );
+      return;
+    }
+
+    if (fileRows && fileRows.length > 0) {
+      await supabase.storage
+        .from(MATERIALS_BUCKET)
+        .remove(fileRows.map((f) => f.file_path));
+    }
+
+    setCourses((prev) => prev.filter((c) => c.id !== course.id));
+  }
+
   if (checking) {
     return (
       <div className="loading-screen">
@@ -96,9 +156,13 @@ export default function AdminHome() {
   return (
     <div className="container" style={{ maxWidth: 640 }}>
       <h1>Admin Dashboard</h1>
-      <p className="subtitle">Manage courses and assign users to them.</p>
+      <p className="subtitle">Manage courses, users and roles.</p>
 
       <h3 style={{ marginTop: 24 }}>Courses</h3>
+      <p className="subtitle">
+        Students get every course automatically. No approval is needed.
+      </p>
+      {courseListError && <div className="error">{courseListError}</div>}
       {courses.length === 0 && (
         <div className="empty-state">
           <span className="empty-state-icon">🏫</span>
@@ -107,8 +171,25 @@ export default function AdminHome() {
         </div>
       )}
       {courses.map((course) => (
-        <div key={course.id} className="question-card">
-          {course.name}
+        <div
+          key={course.id}
+          className="question-card"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
+          }}
+        >
+          <span>{course.name}</span>
+          <button
+            className="btn-danger"
+            style={{ width: 'auto', padding: '8px 14px' }}
+            disabled={deletingId === course.id}
+            onClick={() => handleDeleteCourse(course)}
+          >
+            {deletingId === course.id ? 'Deleting...' : 'Delete'}
+          </button>
         </div>
       ))}
 

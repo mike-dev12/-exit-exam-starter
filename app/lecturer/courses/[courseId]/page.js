@@ -4,6 +4,14 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../../lib/supabaseClient';
+import {
+  MATERIALS_BUCKET,
+  MAX_FILE_BYTES,
+  FILE_TYPES,
+  formatSize,
+  fileLabel,
+  openMaterial,
+} from '../../../../lib/materials';
 
 export default function LecturerCourse() {
   const [course, setCourse] = useState(null);
@@ -13,6 +21,12 @@ export default function LecturerCourse() {
   const [newMockTitle, setNewMockTitle] = useState('');
   const [newMockDuration, setNewMockDuration] = useState(30);
   const [error, setError] = useState('');
+  const [materials, setMaterials] = useState([]);
+  const [materialTitle, setMaterialTitle] = useState('');
+  const [materialFile, setMaterialFile] = useState(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const [materialError, setMaterialError] = useState('');
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
   const router = useRouter();
@@ -67,6 +81,7 @@ export default function LecturerCourse() {
 
       await loadMocks();
       await loadRoster();
+      await loadMaterials();
       setLoading(false);
     }
     load();
@@ -79,6 +94,107 @@ export default function LecturerCourse() {
       .eq('course_id', courseId)
       .order('title');
     setMocks(data || []);
+  }
+
+  async function loadMaterials() {
+    const { data } = await supabase
+      .from('materials')
+      .select('*')
+      .eq('course_id', courseId)
+      .order('created_at', { ascending: false });
+    setMaterials(data || []);
+    return data || [];
+  }
+
+  async function handleUploadMaterial(e) {
+    e.preventDefault();
+    setMaterialError('');
+
+    if (!materialFile) {
+      setMaterialError('Choose a PDF or PowerPoint file first.');
+      return;
+    }
+    const ext = materialFile.name.split('.').pop().toLowerCase();
+    if (!FILE_TYPES[ext]) {
+      setMaterialError('Only PDF, PPT and PPTX files are allowed.');
+      return;
+    }
+    if (materialFile.size > MAX_FILE_BYTES) {
+      setMaterialError('This file is bigger than 50 MB. Compress it and try again.');
+      return;
+    }
+
+    setUploading(true);
+    const safeName = materialFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${courseId}/${Date.now()}-${safeName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(MATERIALS_BUCKET)
+      .upload(path, materialFile, { contentType: FILE_TYPES[ext] });
+
+    if (uploadError) {
+      setUploading(false);
+      setMaterialError(
+        uploadError.message +
+          ' (If this mentions a policy, run supabase/materials.sql in Supabase first.)'
+      );
+      return;
+    }
+
+    const { data: userData } = await supabase.auth.getUser();
+    const { error: insertError } = await supabase.from('materials').insert({
+      course_id: courseId,
+      title: materialTitle.trim() || materialFile.name.replace(/\.[^.]+$/, ''),
+      file_path: path,
+      file_name: materialFile.name,
+      file_type: ext,
+      file_size: materialFile.size,
+      uploaded_by: userData.user?.id,
+    });
+
+    if (insertError) {
+      // don't leave an orphan file behind
+      await supabase.storage.from(MATERIALS_BUCKET).remove([path]);
+      setUploading(false);
+      setMaterialError(
+        insertError.message +
+          ' (If this mentions a policy or a missing table, run supabase/materials.sql first.)'
+      );
+      return;
+    }
+
+    setUploading(false);
+    setMaterialTitle('');
+    setMaterialFile(null);
+    setFileInputKey((k) => k + 1); // clears the file picker
+    loadMaterials();
+  }
+
+  async function handleDeleteMaterial(m) {
+    if (!window.confirm(`Delete "${m.title}"? Students will no longer see it.`)) return;
+    setMaterialError('');
+
+    const { error: deleteError } = await supabase
+      .from('materials')
+      .delete()
+      .eq('id', m.id);
+    if (deleteError) {
+      setMaterialError(deleteError.message);
+      return;
+    }
+
+    // Row-level security blocks silently, so confirm it is really gone.
+    const remaining = await loadMaterials();
+    if (remaining.some((x) => x.id === m.id)) {
+      setMaterialError('Could not delete this file. Run supabase/materials.sql first.');
+      return;
+    }
+    await supabase.storage.from(MATERIALS_BUCKET).remove([m.file_path]);
+  }
+
+  async function handleOpenMaterial(m) {
+    const message = await openMaterial(m);
+    if (message) setMaterialError(message);
   }
 
   async function loadRoster() {
@@ -176,12 +292,15 @@ export default function LecturerCourse() {
           </p>
         </a>
 
-        <div className="hub-card disabled">
+        <a href="#materials" className="hub-card">
           <span className="hub-card-icon">📖</span>
           <h3>Study Materials</h3>
-          <p>Upload notes and key concepts</p>
-          <span className="hub-badge">Coming soon</span>
-        </div>
+          <p>
+            {materials.length === 0
+              ? 'Upload PDF or PowerPoint files'
+              : `${materials.length} file${materials.length === 1 ? '' : 's'} uploaded`}
+          </p>
+        </a>
 
         <div className="hub-card disabled">
           <span className="hub-card-icon">🏷️</span>
@@ -200,6 +319,68 @@ export default function LecturerCourse() {
           </p>
         </a>
       </div>
+
+      <h2 className="section-heading" id="materials">
+        Study Materials
+      </h2>
+      {materials.length === 0 && (
+        <p className="subtitle">No files uploaded yet.</p>
+      )}
+      {materials.length > 0 && (
+        <div className="course-list" style={{ marginBottom: 24 }}>
+          {materials.map((m) => (
+            <div key={m.id} className="course-row">
+              <div className="course-row-top">
+                <div>
+                  <div className="course-row-name">{m.title}</div>
+                  <div className="course-row-progress">
+                    {[fileLabel(m.file_type), formatSize(m.file_size)]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    className="btn-outline"
+                    style={{ width: 'auto', padding: '8px 14px' }}
+                    onClick={() => handleOpenMaterial(m)}
+                  >
+                    {m.file_type === 'pdf' ? 'View' : 'Download'}
+                  </button>
+                  <button
+                    className="btn-danger"
+                    style={{ width: 'auto', padding: '8px 14px' }}
+                    onClick={() => handleDeleteMaterial(m)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <h3 style={{ marginTop: 8 }}>Upload a File</h3>
+      {materialError && <div className="error">{materialError}</div>}
+      <form onSubmit={handleUploadMaterial} style={{ marginBottom: 32 }}>
+        <input
+          type="text"
+          placeholder="Title (optional, e.g. Chapter 3 Slides)"
+          value={materialTitle}
+          onChange={(e) => setMaterialTitle(e.target.value)}
+        />
+        <input
+          key={fileInputKey}
+          type="file"
+          accept=".pdf,.ppt,.pptx"
+          onChange={(e) => setMaterialFile(e.target.files[0] || null)}
+          style={{ marginBottom: 14 }}
+        />
+        <button type="submit" disabled={uploading}>
+          {uploading ? 'Uploading...' : 'Upload'}
+        </button>
+      </form>
 
       <h2 className="section-heading" id="mocks">
         Mock Exams

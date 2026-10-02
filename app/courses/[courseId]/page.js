@@ -12,6 +12,7 @@ export default function CourseHub() {
   const [courseProgress, setCourseProgress] = useState(null);
   const [attemptsCount, setAttemptsCount] = useState(0);
   const [avgScore, setAvgScore] = useState(null);
+  const [materialsCount, setMaterialsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const params = useParams();
@@ -32,6 +33,12 @@ export default function CourseHub() {
         .eq('id', courseId)
         .single();
       setCourse(courseData);
+
+      const { count: materialsTotal } = await supabase
+        .from('materials')
+        .select('id', { count: 'exact', head: true })
+        .eq('course_id', courseId);
+      setMaterialsCount(materialsTotal || 0);
 
       const { data: mocksData, error } = await supabase
         .from('mocks')
@@ -92,12 +99,15 @@ export default function CourseHub() {
       </div>
 
       <div className="hub-grid">
-        <div className="hub-card disabled">
+        <Link href={`/courses/${courseId}/materials`} className="hub-card">
           <span className="hub-card-icon">📖</span>
           <h3>Study Materials</h3>
-          <p>Review notes and key concepts</p>
-          <span className="hub-badge">Coming soon</span>
-        </div>
+          <p>
+            {materialsCount === 0
+              ? 'No materials yet'
+              : `${materialsCount} file${materialsCount === 1 ? '' : 's'} to read`}
+          </p>
+        </Link>
 
         <div className="hub-card disabled">
           <span className="hub-card-icon">🔬</span>

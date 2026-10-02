@@ -170,7 +170,7 @@ export default function Dashboard() {
           <span className="empty-state-icon">📚</span>
           <span className="empty-state-title">No courses yet</span>
           <span className="empty-state-desc">
-            Ask your administrator to assign you to a course to get started.
+            Courses appear here automatically as soon as they are added.
           </span>
         </div>
       ) : (

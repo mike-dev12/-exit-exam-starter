@@ -1,0 +1,118 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { supabase } from '../../../../lib/supabaseClient';
+import { openMaterial, formatSize, fileLabel } from '../../../../lib/materials';
+
+export default function StudyMaterials() {
+  const [course, setCourse] = useState(null);
+  const [materials, setMaterials] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [openingId, setOpeningId] = useState(null);
+  const [error, setError] = useState('');
+  const router = useRouter();
+  const params = useParams();
+  const courseId = params.courseId;
+
+  useEffect(() => {
+    async function load() {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        router.push('/login');
+        return;
+      }
+
+      const { data: courseData } = await supabase
+        .from('courses')
+        .select('id, name')
+        .eq('id', courseId)
+        .single();
+      setCourse(courseData);
+
+      const { data, error: loadError } = await supabase
+        .from('materials')
+        .select('*')
+        .eq('course_id', courseId)
+        .order('created_at', { ascending: false });
+
+      if (loadError) setError(loadError.message);
+      setMaterials(data || []);
+      setLoading(false);
+    }
+    load();
+  }, [courseId, router]);
+
+  async function handleOpen(material) {
+    setError('');
+    setOpeningId(material.id);
+    const message = await openMaterial(material);
+    setOpeningId(null);
+    if (message) setError(message);
+  }
+
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+        <span>Loading materials...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container" style={{ maxWidth: 680 }}>
+      <h1>Study Materials</h1>
+      <p className="subtitle">{course ? course.name : 'Course'}</p>
+
+      {error && <div className="error">{error}</div>}
+
+      {materials.length === 0 ? (
+        <div className="empty-state">
+          <span className="empty-state-icon">📖</span>
+          <span className="empty-state-title">No materials yet</span>
+          <span className="empty-state-desc">
+            Notes and slides will appear here when your lecturer uploads them.
+          </span>
+        </div>
+      ) : (
+        <div className="course-list">
+          {materials.map((m) => (
+            <div key={m.id} className="course-row">
+              <div className="course-row-top">
+                <div>
+                  <div className="course-row-name">{m.title}</div>
+                  <div className="course-row-progress">
+                    {[fileLabel(m.file_type), formatSize(m.file_size)]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </div>
+                </div>
+                <button
+                  className="btn-outline"
+                  style={{ width: 'auto', padding: '8px 14px' }}
+                  disabled={openingId === m.id}
+                  onClick={() => handleOpen(m)}
+                >
+                  {openingId === m.id
+                    ? 'Opening...'
+                    : m.file_type === 'pdf'
+                    ? 'Read'
+                    : 'Download'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button
+        className="btn-muted"
+        style={{ marginTop: 16 }}
+        onClick={() => router.push(`/courses/${courseId}`)}
+      >
+        Back to Course
+      </button>
+    </div>
+  );
+}
