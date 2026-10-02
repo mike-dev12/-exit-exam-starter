@@ -11,6 +11,7 @@ import {
   formatSize,
   fileLabel,
   openMaterial,
+  downloadMaterial,
 } from '../../../../lib/materials';
 
 export default function LecturerCourse() {
@@ -26,6 +27,12 @@ export default function LecturerCourse() {
   const [materialFile, setMaterialFile] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [downloadingId, setDownloadingId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editFile, setEditFile] = useState(null);
+  const [editFileInputKey, setEditFileInputKey] = useState(0);
+  const [savingEdit, setSavingEdit] = useState(false);
   const [materialError, setMaterialError] = useState('');
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
@@ -193,8 +200,103 @@ export default function LecturerCourse() {
   }
 
   async function handleOpenMaterial(m) {
+    setMaterialError('');
     const message = await openMaterial(m);
     if (message) setMaterialError(message);
+  }
+
+  async function handleDownloadMaterial(m) {
+    setMaterialError('');
+    setDownloadingId(m.id);
+    const message = await downloadMaterial(m);
+    setDownloadingId(null);
+    if (message) setMaterialError(message);
+  }
+
+  function startEditMaterial(m) {
+    setMaterialError('');
+    setEditingId(m.id);
+    setEditTitle(m.title);
+    setEditFile(null);
+    setEditFileInputKey((k) => k + 1);
+  }
+
+  function cancelEditMaterial() {
+    setEditingId(null);
+    setEditFile(null);
+  }
+
+  async function handleSaveEditMaterial(m) {
+    setMaterialError('');
+
+    if (!editTitle.trim()) {
+      setMaterialError('Title cannot be empty.');
+      return;
+    }
+
+    let updates = { title: editTitle.trim() };
+    let oldPath = null;
+
+    if (editFile) {
+      const ext = editFile.name.split('.').pop().toLowerCase();
+      if (!FILE_TYPES[ext]) {
+        setMaterialError('Only PDF, PPT and PPTX files are allowed.');
+        return;
+      }
+      if (editFile.size > MAX_FILE_BYTES) {
+        setMaterialError('This file is bigger than 50 MB. Compress it and try again.');
+        return;
+      }
+
+      setSavingEdit(true);
+      const safeName = editFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `${courseId}/${Date.now()}-${safeName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(MATERIALS_BUCKET)
+        .upload(path, editFile, { contentType: FILE_TYPES[ext] });
+
+      if (uploadError) {
+        setSavingEdit(false);
+        setMaterialError(uploadError.message);
+        return;
+      }
+
+      updates = {
+        ...updates,
+        file_path: path,
+        file_name: editFile.name,
+        file_type: ext,
+        file_size: editFile.size,
+      };
+      oldPath = m.file_path;
+    } else {
+      setSavingEdit(true);
+    }
+
+    const { error: updateError } = await supabase
+      .from('materials')
+      .update(updates)
+      .eq('id', m.id);
+
+    if (updateError) {
+      // clean up the newly uploaded file if the row update failed
+      if (updates.file_path) {
+        await supabase.storage.from(MATERIALS_BUCKET).remove([updates.file_path]);
+      }
+      setSavingEdit(false);
+      setMaterialError(updateError.message);
+      return;
+    }
+
+    if (oldPath) {
+      await supabase.storage.from(MATERIALS_BUCKET).remove([oldPath]);
+    }
+
+    setSavingEdit(false);
+    setEditingId(null);
+    setEditFile(null);
+    loadMaterials();
   }
 
   async function loadRoster() {
@@ -328,36 +430,90 @@ export default function LecturerCourse() {
       )}
       {materials.length > 0 && (
         <div className="course-list" style={{ marginBottom: 24 }}>
-          {materials.map((m) => (
-            <div key={m.id} className="course-row">
-              <div className="course-row-top">
-                <div>
-                  <div className="course-row-name">{m.title}</div>
-                  <div className="course-row-progress">
-                    {[fileLabel(m.file_type), formatSize(m.file_size)]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </div>
-                </div>
+          {materials.map((m) =>
+            editingId === m.id ? (
+              <div key={m.id} className="course-row">
+                <input
+                  type="text"
+                  placeholder="Title"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  style={{ marginBottom: 10 }}
+                />
+                <label className="course-row-progress" style={{ display: 'block', marginBottom: 6 }}>
+                  Replace file (optional) — leave empty to keep "{m.file_name}"
+                </label>
+                <input
+                  key={editFileInputKey}
+                  type="file"
+                  accept=".pdf,.ppt,.pptx"
+                  onChange={(e) => setEditFile(e.target.files[0] || null)}
+                  style={{ marginBottom: 12 }}
+                />
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
-                    className="btn-outline"
                     style={{ width: 'auto', padding: '8px 14px' }}
-                    onClick={() => handleOpenMaterial(m)}
+                    disabled={savingEdit}
+                    onClick={() => handleSaveEditMaterial(m)}
                   >
-                    {m.file_type === 'pdf' ? 'View' : 'Download'}
+                    {savingEdit ? 'Saving...' : 'Save'}
                   </button>
                   <button
-                    className="btn-danger"
+                    className="btn-muted"
                     style={{ width: 'auto', padding: '8px 14px' }}
-                    onClick={() => handleDeleteMaterial(m)}
+                    disabled={savingEdit}
+                    onClick={cancelEditMaterial}
                   >
-                    Delete
+                    Cancel
                   </button>
                 </div>
               </div>
-            </div>
-          ))}
+            ) : (
+              <div key={m.id} className="course-row">
+                <div className="course-row-top">
+                  <div>
+                    <div className="course-row-name">{m.title}</div>
+                    <div className="course-row-progress">
+                      {[fileLabel(m.file_type), formatSize(m.file_size)]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      className="btn-outline"
+                      style={{ width: 'auto', padding: '8px 14px' }}
+                      onClick={() => handleOpenMaterial(m)}
+                    >
+                      Open
+                    </button>
+                    <button
+                      className="btn-outline"
+                      style={{ width: 'auto', padding: '8px 14px' }}
+                      disabled={downloadingId === m.id}
+                      onClick={() => handleDownloadMaterial(m)}
+                    >
+                      {downloadingId === m.id ? 'Downloading...' : 'Download'}
+                    </button>
+                    <button
+                      className="btn-outline"
+                      style={{ width: 'auto', padding: '8px 14px' }}
+                      onClick={() => startEditMaterial(m)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn-danger"
+                      style={{ width: 'auto', padding: '8px 14px' }}
+                      onClick={() => handleDeleteMaterial(m)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          )}
         </div>
       )}
 

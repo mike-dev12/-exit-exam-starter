@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '../../../../lib/supabaseClient';
-import { openMaterial, formatSize, fileLabel } from '../../../../lib/materials';
+import { openMaterial, downloadMaterial, formatSize, fileLabel } from '../../../../lib/materials';
 
 export default function StudyMaterials() {
   const [course, setCourse] = useState(null);
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openingId, setOpeningId] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
   const [error, setError] = useState('');
   const router = useRouter();
   const params = useParams();
@@ -51,6 +52,14 @@ export default function StudyMaterials() {
     if (message) setError(message);
   }
 
+  async function handleDownload(material) {
+    setError('');
+    setDownloadingId(material.id);
+    const message = await downloadMaterial(material);
+    setDownloadingId(null);
+    if (message) setError(message);
+  }
+
   if (loading) {
     return (
       <div className="loading-screen">
@@ -88,18 +97,24 @@ export default function StudyMaterials() {
                       .join(' · ')}
                   </div>
                 </div>
-                <button
-                  className="btn-outline"
-                  style={{ width: 'auto', padding: '8px 14px' }}
-                  disabled={openingId === m.id}
-                  onClick={() => handleOpen(m)}
-                >
-                  {openingId === m.id
-                    ? 'Opening...'
-                    : m.file_type === 'pdf'
-                    ? 'Read'
-                    : 'Download'}
-                </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    className="btn-outline"
+                    style={{ width: 'auto', padding: '8px 14px' }}
+                    disabled={openingId === m.id}
+                    onClick={() => handleOpen(m)}
+                  >
+                    {openingId === m.id ? 'Opening...' : 'Open'}
+                  </button>
+                  <button
+                    className="btn-outline"
+                    style={{ width: 'auto', padding: '8px 14px' }}
+                    disabled={downloadingId === m.id}
+                    onClick={() => handleDownload(m)}
+                  >
+                    {downloadingId === m.id ? 'Downloading...' : 'Download'}
+                  </button>
+                </div>
               </div>
             </div>
           ))}
