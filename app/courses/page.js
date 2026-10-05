@@ -8,8 +8,6 @@ import { supabase } from '../../lib/supabaseClient';
 export default function Courses() {
   const [courses, setCourses] = useState([]);
   const [progressByCourse, setProgressByCourse] = useState({});
-  const [generalMocks, setGeneralMocks] = useState([]);
-  const [generalBest, setGeneralBest] = useState({});
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -21,31 +19,6 @@ export default function Courses() {
         return;
       }
       const studentId = userData.user.id;
-
-      // General mock exams (combined questions, not tied to a course)
-      const { data: generalData } = await supabase
-        .from('mocks')
-        .select('id, title, duration_minutes')
-        .eq('is_general', true)
-        .order('title');
-      const generalList = generalData || [];
-      setGeneralMocks(generalList);
-
-      if (generalList.length > 0) {
-        const { data: generalResults } = await supabase
-          .from('results')
-          .select('mock_id, score, total_questions')
-          .eq('student_id', studentId)
-          .in('mock_id', generalList.map((m) => m.id));
-        const best = {};
-        (generalResults || []).forEach((r) => {
-          const pct = (r.score / r.total_questions) * 100;
-          if (best[r.mock_id] === undefined || pct > best[r.mock_id]) {
-            best[r.mock_id] = pct;
-          }
-        });
-        setGeneralBest(best);
-      }
 
       const { data: scRows, error } = await supabase
         .from('student_courses')
@@ -127,45 +100,6 @@ export default function Courses() {
     <div className="container">
       <h1>Courses</h1>
       <p className="subtitle">All available courses.</p>
-
-      {generalMocks.length > 0 && (
-        <>
-          <h2 className="section-heading" id="general-mocks">
-            General Mock Exams
-          </h2>
-          <p className="subtitle">Questions from all courses combined.</p>
-          <div className="course-list" style={{ marginBottom: 28 }}>
-            {generalMocks.map((mock) => {
-              const best = generalBest[mock.id];
-              return (
-                <div key={mock.id} className="course-row">
-                  <div className="course-row-top">
-                    <div>
-                      <div className="course-row-name">{mock.title}</div>
-                      <div className="course-row-progress">
-                        {mock.duration_minutes} min ·{' '}
-                        {best !== undefined
-                          ? `${Math.round(best)}% best score`
-                          : 'Not attempted'}
-                      </div>
-                    </div>
-                    <Link href={`/quiz/${mock.id}`} className="course-row-link">
-                      {best !== undefined ? 'Retake →' : 'Start →'}
-                    </Link>
-                  </div>
-                  <div className="progress-bar-track">
-                    <div
-                      className="progress-bar-fill"
-                      style={{ width: `${best || 0}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <h2 className="section-heading">By Course</h2>
-        </>
-      )}
 
       {courses.length === 0 && (
         <div className="empty-state">

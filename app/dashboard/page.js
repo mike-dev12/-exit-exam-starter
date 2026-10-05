@@ -211,7 +211,7 @@ export default function Dashboard() {
           Browse Courses
         </Link>
 
-        <Link href="/courses#general-mocks" className="quick-action">
+        <Link href="/general-mocks" className="quick-action">
           <span className="quick-action-icon">🧪</span>
           General Mocks
         </Link>
