@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import { MATERIALS_BUCKET } from '../../lib/materials';
+import { deleteUserAccount } from '../../lib/deleteUser';
 
 export default function AdminHome() {
   const [authorized, setAuthorized] = useState(false);
@@ -20,6 +21,9 @@ export default function AdminHome() {
   const [newGeneralTitle, setNewGeneralTitle] = useState('');
   const [newGeneralDuration, setNewGeneralDuration] = useState(60);
   const [generalError, setGeneralError] = useState('');
+  const [userError, setUserError] = useState('');
+  const [deletingUserId, setDeletingUserId] = useState(null);
+  const [myId, setMyId] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -41,6 +45,7 @@ export default function AdminHome() {
         return;
       }
 
+      setMyId(userData.user.id);
       setAuthorized(true);
       setChecking(false);
       loadCourses();
@@ -132,6 +137,27 @@ export default function AdminHome() {
     setUsers(data || []);
   }
 
+    async function handleDeleteUser(u) {
+    const label = u.full_name || '(no name)';
+    if (
+      !window.confirm(
+        `Delete ${u.role} "${label}"?\n\n` +
+          'Their login, profile, and all their results will be permanently deleted. ' +
+          'This cannot be undone.'
+      )
+    )
+      return;
+
+    setUserError('');
+    setDeletingUserId(u.id);
+    const err = await deleteUserAccount(u.id);
+    setDeletingUserId(null);
+    if (err) {
+      setUserError(err);
+      return;
+    }
+    setUsers((prev) => prev.filter((x) => x.id !== u.id));
+  }
   async function handleAddCourse(e) {
     e.preventDefault();
     setError('');
@@ -346,17 +372,37 @@ export default function AdminHome() {
         <button type="submit">Add General Mock</button>
       </form>
 
-      <h3 style={{ marginTop: 24 }}>Users</h3>
+            <h3 style={{ marginTop: 24 }}>Users</h3>
+      {userError && <div className="error">{userError}</div>}
       {users.map((u) => (
-        <Link key={u.id} href={`/admin/users/${u.id}`}>
-          <div
-            className="question-card"
-            style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}
+        <div
+          key={u.id}
+          className="question-card"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
+          }}
+        >
+          <Link
+            href={`/admin/users/${u.id}`}
+            style={{ flex: 1, display: 'flex', justifyContent: 'space-between', gap: 12 }}
           >
             <span>{u.full_name || '(no name)'}</span>
             <span style={{ color: '#666', fontSize: '0.85rem' }}>{u.role}</span>
-          </div>
-        </Link>
+          </Link>
+          {u.id !== myId && u.role !== 'admin' && (
+            <button
+              className="btn-danger"
+              style={{ width: 'auto', padding: '8px 14px' }}
+              disabled={deletingUserId === u.id}
+              onClick={() => handleDeleteUser(u)}
+            >
+              {deletingUserId === u.id ? 'Deleting...' : 'Delete'}
+            </button>
+          )}
+        </div>
       ))}
 
       <button

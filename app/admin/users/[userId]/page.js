@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '../../../../lib/supabaseClient';
+import { deleteUserAccount } from '../../../../lib/deleteUser';
 
 export default function AdminUserDetail() {
   const [authorized, setAuthorized] = useState(false);
@@ -13,6 +14,7 @@ export default function AdminUserDetail() {
   const [lecturerCourseIds, setLecturerCourseIds] = useState(new Set());
   const [role, setRole] = useState('student');
   const [message, setMessage] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const router = useRouter();
   const params = useParams();
   const userId = params.userId;
@@ -118,6 +120,27 @@ export default function AdminUserDetail() {
     }
   }
 
+  async function handleDeleteUser() {
+    const label = targetProfile?.full_name || '(no name)';
+    if (
+      !window.confirm(
+        `Delete ${role} "${label}"?\n\n` +
+          'Their login, profile, and all their results will be permanently deleted. ' +
+          'This cannot be undone.'
+      )
+    )
+      return;
+    setMessage('');
+    setDeleting(true);
+    const err = await deleteUserAccount(userId);
+    setDeleting(false);
+    if (err) {
+      setMessage('Error: ' + err);
+      return;
+    }
+    router.push('/admin');
+  }
+
   if (loading) return <div className="container">Loading...</div>;
 
   if (!authorized) {
@@ -174,6 +197,15 @@ export default function AdminUserDetail() {
           {c.name}
         </label>
       ))}
+
+      {targetProfile?.role !== 'admin' && (
+        <>
+          <h3 style={{ marginTop: 24 }}>Danger zone</h3>
+          <button className="btn-danger" disabled={deleting} onClick={handleDeleteUser}>
+            {deleting ? 'Deleting...' : 'Delete this user'}
+          </button>
+        </>
+      )}
 
       <button
         className="btn-muted"

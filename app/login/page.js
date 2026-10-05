@@ -62,68 +62,172 @@ function EyeIcon({ open }) {
 function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
   const [studentId, setStudentId] = useState('');
   const [university, setUniversity] = useState('');
   const [department, setDepartment] = useState('');
   const [year, setYear] = useState('');
-  const [isSignup, setIsSignup] = useState(false);
+  const [otp, setOtp] = useState('');
+  // mode: 'login' | 'signup' | 'reset'
+  const [mode, setMode] = useState('login');
+  // step (signup/reset only): 'details' -> 'otp' -> 'password'
+  const [step, setStep] = useState('details');
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const isSignup = mode === 'signup';
+  const isReset = mode === 'reset';
+
   useEffect(() => {
     if (searchParams.get('mode') === 'signup') {
-      setIsSignup(true);
+      setMode('signup');
     }
   }, [searchParams]);
+
+  // Count down the "resend code" timer
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  function switchMode(next) {
+    setMode(next);
+    setStep('details');
+    setError('');
+    setInfo('');
+    setOtp('');
+    setPassword('');
+    setConfirmPassword('');
+  }
+
+  // Step 1: send a one-time code to the student's email
+  async function sendCode() {
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: { shouldCreateUser: isSignup },
+    });
+    if (error) {
+      setError(
+        error.message.toLowerCase().includes('signups not allowed')
+          ? 'No account found for this email. Please sign up first.'
+          : error.message
+      );
+      return false;
+    }
+    setCooldown(60);
+    return true;
+  }
+
+  async function handleResend() {
+    setError('');
+    setInfo('');
+    setLoading(true);
+    const ok = await sendCode();
+    setLoading(false);
+    if (ok) setInfo('A new code has been sent to your email.');
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    setInfo('');
     setLoading(true);
 
-    if (isSignup) {
-      const { data, error } = await supabase.auth.signUp({ email, password });
-
+    // ---------- Normal sign in ----------
+    if (mode === 'login') {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      setLoading(false);
       if (error) {
         setError(error.message);
-        setLoading(false);
         return;
       }
+      router.push('/dashboard');
+      return;
+    }
 
-      if (data.user) {
+    // ---------- Sign up / reset: step 1 (email -> send code) ----------
+    if (step === 'details') {
+      const ok = await sendCode();
+      setLoading(false);
+      if (ok) {
+        setStep('otp');
+        setInfo(`We sent a verification code to ${email.trim()}.`);
+      }
+      return;
+    }
+
+    // ---------- Step 2 (verify the code) ----------
+    if (step === 'otp') {
+      const { error } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: otp.trim(),
+        type: 'email',
+      });
+      setLoading(false);
+      if (error) {
+        setError('That code is invalid or has expired. Please try again.');
+        return;
+      }
+      setStep('password');
+      setInfo('Email verified. Now choose a password.');
+      return;
+    }
+
+    // ---------- Step 3 (create the password) ----------
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      setLoading(false);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      setLoading(false);
+      return;
+    }
+
+    const { data: updated, error: pwError } = await supabase.auth.updateUser({ password });
+    if (pwError) {
+      setError(pwError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (isSignup) {
+      const userId = updated.user.id;
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (!existing) {
         const { error: profileError } = await supabase.from('profiles').insert({
-          id: data.user.id,
+          id: userId,
           full_name: fullName,
           student_id: studentId,
           university,
           department,
           year,
         });
-
         if (profileError) {
           setError(profileError.message);
           setLoading(false);
           return;
         }
       }
-
-      setLoading(false);
-      router.push('/dashboard');
-      return;
     }
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
     router.push('/dashboard');
   }
 
@@ -190,17 +294,31 @@ function LoginForm() {
 
       <div className="auth-panel">
         <div className="auth-card reveal reveal-6">
-          <h2>{isSignup ? 'Create account' : 'Sign in'}</h2>
+          <h2>
+            {mode === 'login' && 'Sign in'}
+            {isSignup && step === 'details' && 'Create account'}
+            {isSignup && step === 'otp' && 'Verify your email'}
+            {isSignup && step === 'password' && 'Create your password'}
+            {isReset && step === 'details' && 'Reset password'}
+            {isReset && step === 'otp' && 'Verify your email'}
+            {isReset && step === 'password' && 'Choose a new password'}
+          </h2>
           <p className="auth-card-subtitle">
-            {isSignup
-              ? 'Set up your account to start practicing.'
-              : 'Enter your credentials to continue your prep.'}
+            {mode === 'login' && 'Enter your credentials to continue your prep.'}
+            {mode !== 'login' &&
+              step === 'details' &&
+              (isSignup
+                ? "Enter your details. We'll email you a verification code."
+                : "Enter your email and we'll send you a verification code.")}
+            {mode !== 'login' && step === 'otp' && 'Type the code we just emailed you.'}
+            {mode !== 'login' && step === 'password' && 'You will use this password to sign in.'}
           </p>
 
           {error && <div className="error">{error}</div>}
+          {info && !error && <div className="success">{info}</div>}
 
           <form onSubmit={handleSubmit} className="auth-form">
-            {isSignup && (
+            {isSignup && step === 'details' && (
               <div className="auth-extra-fields">
                 <label className="auth-label" htmlFor="fullName">
                   Full name
@@ -260,59 +378,145 @@ function LoginForm() {
               </div>
             )}
 
-            <label className="auth-label" htmlFor="email">
-              Email address
-            </label>
-            <div className="auth-input-wrap">
-              <span className="auth-input-icon">
-                <MailIcon />
-              </span>
-              <input
-                id="email"
-                className="has-icon"
-                type="email"
-                placeholder="you@biopath.app"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+            {(mode === 'login' || step === 'details') && (
+              <>
+                <label className="auth-label" htmlFor="email">
+                  Email address
+                </label>
+                <div className="auth-input-wrap">
+                  <span className="auth-input-icon">
+                    <MailIcon />
+                  </span>
+                  <input
+                    id="email"
+                    className="has-icon"
+                    type="email"
+                    placeholder="you@biopath.app"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </>
+            )}
 
-            <label className="auth-label" htmlFor="password">
-              Password
-            </label>
-            <div className="auth-input-wrap">
-              <span className="auth-input-icon">
-                <LockIcon />
-              </span>
-              <input
-                id="password"
-                className="has-icon has-icon-right"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <button
-                type="button"
-                className="auth-input-toggle"
-                onClick={() => setShowPassword((s) => !s)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                <EyeIcon open={showPassword} />
-              </button>
-            </div>
+            {mode !== 'login' && step === 'otp' && (
+              <>
+                <label className="auth-label" htmlFor="otp">
+                  Verification code
+                </label>
+                <input
+                  id="otp"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={10}
+                  placeholder="Enter the code"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  style={{ letterSpacing: '0.3em', textAlign: 'center', fontSize: '1.2rem' }}
+                  required
+                />
+              </>
+            )}
+
+            {(mode === 'login' || step === 'password') && (
+              <>
+                <label className="auth-label" htmlFor="password">
+                  {mode === 'login' ? 'Password' : 'New password'}
+                </label>
+                <div className="auth-input-wrap">
+                  <span className="auth-input-icon">
+                    <LockIcon />
+                  </span>
+                  <input
+                    id="password"
+                    className="has-icon has-icon-right"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder={mode === 'login' ? '••••••••' : 'At least 8 characters'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="auth-input-toggle"
+                    onClick={() => setShowPassword((s) => !s)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    <EyeIcon open={showPassword} />
+                  </button>
+                </div>
+              </>
+            )}
+
+            {mode !== 'login' && step === 'password' && (
+              <>
+                <label className="auth-label" htmlFor="confirmPassword">
+                  Confirm password
+                </label>
+                <div className="auth-input-wrap">
+                  <span className="auth-input-icon">
+                    <LockIcon />
+                  </span>
+                  <input
+                    id="confirmPassword"
+                    className="has-icon"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Repeat the password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </>
+            )}
 
             <button type="submit" className="auth-submit" disabled={loading}>
-              {loading ? 'Please wait...' : isSignup ? 'Sign Up' : 'Sign in'}
+              {loading
+                ? 'Please wait...'
+                : mode === 'login'
+                ? 'Sign in'
+                : step === 'details'
+                ? 'Send verification code'
+                : step === 'otp'
+                ? 'Verify code'
+                : isSignup
+                ? 'Create account'
+                : 'Save new password'}
             </button>
+
+            {mode !== 'login' && step === 'otp' && (
+              <button
+                type="button"
+                className="btn-muted"
+                style={{ marginTop: 10 }}
+                disabled={loading || cooldown > 0}
+                onClick={handleResend}
+              >
+                {cooldown > 0 ? `Resend code in ${cooldown}s` : 'Resend code'}
+              </button>
+            )}
           </form>
 
+          {mode === 'login' && (
+            <p className="auth-toggle" style={{ marginBottom: 0 }}>
+              <a href="#" onClick={(e) => { e.preventDefault(); switchMode('reset'); }}>
+                Forgot password?
+              </a>
+            </p>
+          )}
+
           <p className="auth-toggle">
-            {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
-            <a href="#" onClick={() => setIsSignup(!isSignup)}>
-              {isSignup ? 'Log in' : 'Sign up'}
+            {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}{' '}
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                switchMode(mode === 'login' ? 'signup' : 'login');
+              }}
+            >
+              {mode === 'login' ? 'Sign up' : 'Log in'}
             </a>
           </p>
         </div>
