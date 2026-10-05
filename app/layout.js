@@ -1,6 +1,7 @@
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import TopNav from './components/TopNav';
+import ClickEffects from './components/ClickEffects';
 
 const heading = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -27,6 +28,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${heading.variable} ${sans.variable}`}>
       <body>
         <TopNav />
+        <ClickEffects />
         {children}
       </body>
     </html>

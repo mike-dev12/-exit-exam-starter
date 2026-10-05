@@ -43,6 +43,9 @@ export default function TopNav() {
   if (HIDDEN_ON.includes(pathname)) return null;
   if (!loaded) return <div className="topnav-placeholder" />;
 
+  const linkClass = (href) =>
+    `topnav-link${pathname === href || pathname.startsWith(href + '/') ? ' active' : ''}`;
+
   async function handleLogout() {
     await supabase.auth.signOut();
     router.push('/login');
@@ -56,22 +59,25 @@ export default function TopNav() {
         </Link>
 
         <div className="topnav-links">
-          <Link href="/dashboard" className="topnav-link">
+          <Link href="/dashboard" className={linkClass('/dashboard')}>
             Dashboard
           </Link>
-          <Link href="/courses" className="topnav-link">
+          <Link href="/courses" className={linkClass('/courses')}>
             Courses
           </Link>
-          <Link href="/results" className="topnav-link">
+          <Link href="/general-mocks" className={linkClass('/general-mocks')}>
+            General Mocks
+          </Link>
+          <Link href="/results" className={linkClass('/results')}>
             Results
           </Link>
           {(profile?.role === 'lecturer' || profile?.role === 'admin') && (
-            <Link href="/lecturer" className="topnav-link">
+            <Link href="/lecturer" className={linkClass('/lecturer')}>
               Lecturer
             </Link>
           )}
           {profile?.role === 'admin' && (
-            <Link href="/admin" className="topnav-link">
+            <Link href="/admin" className={linkClass('/admin')}>
               Admin
             </Link>
           )}
