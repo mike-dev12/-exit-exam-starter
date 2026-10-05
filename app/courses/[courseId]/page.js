@@ -13,6 +13,7 @@ export default function CourseHub() {
   const [attemptsCount, setAttemptsCount] = useState(0);
   const [avgScore, setAvgScore] = useState(null);
   const [materialsCount, setMaterialsCount] = useState(0);
+  const [practiceCount, setPracticeCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const params = useParams();
@@ -37,8 +38,16 @@ export default function CourseHub() {
       const { count: materialsTotal } = await supabase
         .from('materials')
         .select('id', { count: 'exact', head: true })
-        .eq('course_id', courseId);
+        .eq('course_id', courseId)
+        .eq('category', 'material');
       setMaterialsCount(materialsTotal || 0);
+
+      const { count: practiceTotal } = await supabase
+        .from('materials')
+        .select('id', { count: 'exact', head: true })
+        .eq('course_id', courseId)
+        .eq('category', 'practice');
+      setPracticeCount(practiceTotal || 0);
 
       const { data: mocksData, error } = await supabase
         .from('mocks')
@@ -109,12 +118,15 @@ export default function CourseHub() {
           </p>
         </Link>
 
-        <div className="hub-card disabled">
+        <Link href={`/courses/${courseId}/practice`} className="hub-card">
           <span className="hub-card-icon">🔬</span>
-          <h3>Practical &amp; Practice</h3>
-          <p>Practice questions, cases, calculations and scenarios</p>
-          <span className="hub-badge">Coming soon</span>
-        </div>
+          <h3>Practice Questions</h3>
+          <p>
+            {practiceCount === 0
+              ? 'No question papers yet'
+              : `${practiceCount} file${practiceCount === 1 ? '' : 's'} to practice with`}
+          </p>
+        </Link>
 
         <a href="#mock-exams" className="hub-card">
           <span className="hub-card-icon">📝</span>

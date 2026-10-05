@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '../../../../lib/supabaseClient';
 import { openMaterial, downloadMaterial, formatSize, fileLabel } from '../../../../lib/materials';
 
-export default function StudyMaterials() {
+export default function PracticeQuestions() {
   const [course, setCourse] = useState(null);
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +35,7 @@ export default function StudyMaterials() {
         .from('materials')
         .select('*')
         .eq('course_id', courseId)
-        .eq('category', 'material')
+        .eq('category', 'practice')
         .order('created_at', { ascending: false });
 
       if (loadError) setError(loadError.message);
@@ -65,24 +65,24 @@ export default function StudyMaterials() {
     return (
       <div className="loading-screen">
         <div className="spinner" />
-        <span>Loading materials...</span>
+        <span>Loading practice questions...</span>
       </div>
     );
   }
 
   return (
     <div className="container" style={{ maxWidth: 680 }}>
-      <h1>Study Materials</h1>
+      <h1>Practice Questions</h1>
       <p className="subtitle">{course ? course.name : 'Course'}</p>
 
       {error && <div className="error">{error}</div>}
 
       {materials.length === 0 ? (
         <div className="empty-state">
-          <span className="empty-state-icon">📖</span>
-          <span className="empty-state-title">No materials yet</span>
+          <span className="empty-state-icon">📝</span>
+          <span className="empty-state-title">No practice questions yet</span>
           <span className="empty-state-desc">
-            Notes, slides and documents will appear here when your lecturer uploads them.
+            Question papers (PDF, Word and more) will appear here when your lecturer uploads them.
           </span>
         </div>
       ) : (

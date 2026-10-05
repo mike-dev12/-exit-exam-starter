@@ -211,6 +211,11 @@ export default function Dashboard() {
           Browse Courses
         </Link>
 
+        <Link href="/courses#general-mocks" className="quick-action">
+          <span className="quick-action-icon">🧪</span>
+          General Mocks
+        </Link>
+
         {lastMockId && (
           <Link href={`/quiz/${lastMockId}`} className="quick-action">
             <span className="quick-action-icon">⏱️</span>

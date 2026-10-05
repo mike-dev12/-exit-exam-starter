@@ -8,6 +8,10 @@ import {
   MATERIALS_BUCKET,
   MAX_FILE_BYTES,
   FILE_TYPES,
+  ACCEPT,
+  ALLOWED_TEXT,
+  CATEGORIES,
+  categoryLabel,
   formatSize,
   fileLabel,
   openMaterial,
@@ -25,12 +29,14 @@ export default function LecturerCourse() {
   const [materials, setMaterials] = useState([]);
   const [materialTitle, setMaterialTitle] = useState('');
   const [materialFile, setMaterialFile] = useState(null);
+  const [materialCategory, setMaterialCategory] = useState('material');
   const [fileInputKey, setFileInputKey] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [downloadingId, setDownloadingId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [editFile, setEditFile] = useState(null);
+  const [editCategory, setEditCategory] = useState('material');
   const [editFileInputKey, setEditFileInputKey] = useState(0);
   const [savingEdit, setSavingEdit] = useState(false);
   const [materialError, setMaterialError] = useState('');
@@ -118,12 +124,12 @@ export default function LecturerCourse() {
     setMaterialError('');
 
     if (!materialFile) {
-      setMaterialError('Choose a PDF or PowerPoint file first.');
+      setMaterialError('Choose a file first.');
       return;
     }
     const ext = materialFile.name.split('.').pop().toLowerCase();
     if (!FILE_TYPES[ext]) {
-      setMaterialError('Only PDF, PPT and PPTX files are allowed.');
+      setMaterialError(`Only ${ALLOWED_TEXT} files are allowed.`);
       return;
     }
     if (materialFile.size > MAX_FILE_BYTES) {
@@ -156,6 +162,7 @@ export default function LecturerCourse() {
       file_name: materialFile.name,
       file_type: ext,
       file_size: materialFile.size,
+      category: materialCategory,
       uploaded_by: userData.user?.id,
     });
 
@@ -173,6 +180,7 @@ export default function LecturerCourse() {
     setUploading(false);
     setMaterialTitle('');
     setMaterialFile(null);
+    setMaterialCategory('material');
     setFileInputKey((k) => k + 1); // clears the file picker
     loadMaterials();
   }
@@ -217,6 +225,7 @@ export default function LecturerCourse() {
     setMaterialError('');
     setEditingId(m.id);
     setEditTitle(m.title);
+    setEditCategory(m.category || 'material');
     setEditFile(null);
     setEditFileInputKey((k) => k + 1);
   }
@@ -234,13 +243,13 @@ export default function LecturerCourse() {
       return;
     }
 
-    let updates = { title: editTitle.trim() };
+    let updates = { title: editTitle.trim(), category: editCategory };
     let oldPath = null;
 
     if (editFile) {
       const ext = editFile.name.split('.').pop().toLowerCase();
       if (!FILE_TYPES[ext]) {
-        setMaterialError('Only PDF, PPT and PPTX files are allowed.');
+        setMaterialError(`Only ${ALLOWED_TEXT} files are allowed.`);
         return;
       }
       if (editFile.size > MAX_FILE_BYTES) {
@@ -399,7 +408,7 @@ export default function LecturerCourse() {
           <h3>Study Materials</h3>
           <p>
             {materials.length === 0
-              ? 'Upload PDF or PowerPoint files'
+              ? 'Upload PDF, Word or PowerPoint files'
               : `${materials.length} file${materials.length === 1 ? '' : 's'} uploaded`}
           </p>
         </a>
@@ -441,12 +450,24 @@ export default function LecturerCourse() {
                   style={{ marginBottom: 10 }}
                 />
                 <label className="course-row-progress" style={{ display: 'block', marginBottom: 6 }}>
+                  Section students see it in
+                </label>
+                <select
+                  value={editCategory}
+                  onChange={(e) => setEditCategory(e.target.value)}
+                  style={{ marginBottom: 12 }}
+                >
+                  {Object.entries(CATEGORIES).map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </select>
+                <label className="course-row-progress" style={{ display: 'block', marginBottom: 6 }}>
                   Replace file (optional) — leave empty to keep "{m.file_name}"
                 </label>
                 <input
                   key={editFileInputKey}
                   type="file"
-                  accept=".pdf,.ppt,.pptx"
+                  accept={ACCEPT}
                   onChange={(e) => setEditFile(e.target.files[0] || null)}
                   style={{ marginBottom: 12 }}
                 />
@@ -474,7 +495,7 @@ export default function LecturerCourse() {
                   <div>
                     <div className="course-row-name">{m.title}</div>
                     <div className="course-row-progress">
-                      {[fileLabel(m.file_type), formatSize(m.file_size)]
+                      {[categoryLabel(m.category), fileLabel(m.file_type), formatSize(m.file_size)]
                         .filter(Boolean)
                         .join(' · ')}
                     </div>
@@ -518,6 +539,9 @@ export default function LecturerCourse() {
       )}
 
       <h3 style={{ marginTop: 8 }}>Upload a File</h3>
+      <p className="subtitle">
+        Accepted: {ALLOWED_TEXT}. Choose "Practice questions" for question papers.
+      </p>
       {materialError && <div className="error">{materialError}</div>}
       <form onSubmit={handleUploadMaterial} style={{ marginBottom: 32 }}>
         <input
@@ -526,10 +550,20 @@ export default function LecturerCourse() {
           value={materialTitle}
           onChange={(e) => setMaterialTitle(e.target.value)}
         />
+        <label>Where should students find it? </label>
+        <select
+          value={materialCategory}
+          onChange={(e) => setMaterialCategory(e.target.value)}
+          style={{ marginBottom: 14 }}
+        >
+          {Object.entries(CATEGORIES).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </select>
         <input
           key={fileInputKey}
           type="file"
-          accept=".pdf,.ppt,.pptx"
+          accept={ACCEPT}
           onChange={(e) => setMaterialFile(e.target.files[0] || null)}
           style={{ marginBottom: 14 }}
         />

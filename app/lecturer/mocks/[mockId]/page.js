@@ -55,6 +55,9 @@ export default function LecturerMock() {
       let ok = false;
       if (profileData?.role === 'admin') {
         ok = true;
+      } else if (mockData.is_general) {
+        // General mocks belong to no course, so only admins manage them.
+        ok = false;
       } else if (profileData?.role === 'lecturer') {
         const { data: assignment } = await supabase
           .from('lecturer_courses')
@@ -147,7 +150,11 @@ export default function LecturerMock() {
   return (
     <div className="container" style={{ maxWidth: 640 }}>
       <h1>{mock ? mock.title : 'Mock'}</h1>
-      <p className="subtitle">Manage questions for this mock.</p>
+      <p className="subtitle">
+        {mock?.is_general
+          ? 'General mock: add questions from any course, mixed together.'
+          : 'Manage questions for this mock.'}
+      </p>
 
       <h3 style={{ marginTop: 24 }}>
         Questions ({questions.length})

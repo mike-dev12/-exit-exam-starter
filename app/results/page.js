@@ -19,7 +19,7 @@ export default function MyResults() {
 
       const { data, error } = await supabase
         .from('results')
-        .select('*, mocks ( title, course_id, courses ( name ) )')
+        .select('*, mocks ( title, course_id, is_general, courses ( name ) )')
         .eq('student_id', userData.user.id)
         .order('taken_at', { ascending: false });
 
@@ -59,7 +59,7 @@ export default function MyResults() {
         return (
           <div key={r.id} className="question-card">
             <p>
-              <strong>{r.mocks?.courses?.name || 'Course'} — {r.mocks?.title || 'Mock'}</strong>
+              <strong>{r.mocks?.is_general ? 'General' : r.mocks?.courses?.name || 'Course'} — {r.mocks?.title || 'Mock'}</strong>
             </p>
             <p>
               Score: {r.score} / {r.total_questions} ({pct}%)

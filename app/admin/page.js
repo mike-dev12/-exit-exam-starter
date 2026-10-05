@@ -15,6 +15,11 @@ export default function AdminHome() {
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState(null);
   const [courseListError, setCourseListError] = useState('');
+  const [generalMocks, setGeneralMocks] = useState([]);
+  const [generalCounts, setGeneralCounts] = useState({});
+  const [newGeneralTitle, setNewGeneralTitle] = useState('');
+  const [newGeneralDuration, setNewGeneralDuration] = useState(60);
+  const [generalError, setGeneralError] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -40,6 +45,7 @@ export default function AdminHome() {
       setChecking(false);
       loadCourses();
       loadUsers();
+      loadGeneralMocks();
     }
     load();
   }, [router]);
@@ -47,6 +53,74 @@ export default function AdminHome() {
   async function loadCourses() {
     const { data } = await supabase.from('courses').select('*').order('name');
     setCourses(data || []);
+  }
+
+  async function loadGeneralMocks() {
+    const { data } = await supabase
+      .from('mocks')
+      .select('*')
+      .eq('is_general', true)
+      .order('title');
+    const list = data || [];
+    setGeneralMocks(list);
+
+    if (list.length === 0) {
+      setGeneralCounts({});
+      return;
+    }
+    const { data: qRows } = await supabase
+      .from('questions')
+      .select('mock_id')
+      .in('mock_id', list.map((m) => m.id));
+    const counts = {};
+    (qRows || []).forEach((q) => {
+      counts[q.mock_id] = (counts[q.mock_id] || 0) + 1;
+    });
+    setGeneralCounts(counts);
+  }
+
+  async function handleAddGeneralMock(e) {
+    e.preventDefault();
+    setGeneralError('');
+    if (!newGeneralTitle.trim()) return;
+
+    const { error: insertError } = await supabase.from('mocks').insert({
+      title: newGeneralTitle.trim(),
+      duration_minutes: Number(newGeneralDuration) || 60,
+      is_general: true,
+      course_id: null,
+    });
+
+    if (insertError) {
+      setGeneralError(
+        insertError.message +
+          ' (If this mentions a column or policy, run supabase/general-mocks-and-files.sql first.)'
+      );
+      return;
+    }
+    setNewGeneralTitle('');
+    setNewGeneralDuration(60);
+    loadGeneralMocks();
+  }
+
+  async function handleDeleteGeneralMock(mock) {
+    if (
+      !window.confirm(
+        `Delete "${mock.title}"?\n\nThis also deletes its questions and every student's results for it.`
+      )
+    )
+      return;
+    setGeneralError('');
+
+    const { error: deleteError } = await supabase
+      .from('mocks')
+      .delete()
+      .eq('id', mock.id);
+    if (deleteError) {
+      setGeneralError(deleteError.message);
+      return;
+    }
+    await loadGeneralMocks();
   }
 
   async function loadUsers() {
@@ -156,7 +230,7 @@ export default function AdminHome() {
   return (
     <div className="container" style={{ maxWidth: 640 }}>
       <h1>Admin Dashboard</h1>
-      <p className="subtitle">Manage courses, users and roles.</p>
+      <p className="subtitle">Manage courses, general mocks, users and roles.</p>
 
       <h3 style={{ marginTop: 24 }}>Courses</h3>
       <p className="subtitle">
@@ -203,6 +277,73 @@ export default function AdminHome() {
           onChange={(e) => setNewCourseName(e.target.value)}
         />
         <button type="submit">Add Course</button>
+      </form>
+
+      <h3 style={{ marginTop: 24 }}>General Mock Exams</h3>
+      <p className="subtitle">
+        Combined exams (Mock 1, Mock 2, ...) that are not tied to one course.
+        Every student sees them on the Courses page.
+      </p>
+      {generalError && <div className="error">{generalError}</div>}
+      {generalMocks.length === 0 && (
+        <p className="subtitle">No general mocks yet.</p>
+      )}
+      {generalMocks.map((mock) => (
+        <div
+          key={mock.id}
+          className="question-card"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}
+        >
+          <span>
+            <strong>{mock.title}</strong>
+            <br />
+            <span style={{ color: '#666', fontSize: '0.85rem' }}>
+              {generalCounts[mock.id] || 0} questions · {mock.duration_minutes} min
+            </span>
+          </span>
+          <span style={{ display: 'flex', gap: 8 }}>
+            <Link href={`/lecturer/mocks/${mock.id}`}>
+              <button
+                className="btn-outline"
+                style={{ width: 'auto', padding: '8px 14px' }}
+              >
+                Manage
+              </button>
+            </Link>
+            <button
+              className="btn-danger"
+              style={{ width: 'auto', padding: '8px 14px' }}
+              onClick={() => handleDeleteGeneralMock(mock)}
+            >
+              Delete
+            </button>
+          </span>
+        </div>
+      ))}
+
+      <h3 style={{ marginTop: 16 }}>Add a General Mock</h3>
+      <form onSubmit={handleAddGeneralMock}>
+        <input
+          type="text"
+          placeholder="Title (e.g. General Mock 1)"
+          value={newGeneralTitle}
+          onChange={(e) => setNewGeneralTitle(e.target.value)}
+        />
+        <label>Time limit (minutes): </label>
+        <input
+          type="number"
+          min="1"
+          value={newGeneralDuration}
+          onChange={(e) => setNewGeneralDuration(e.target.value)}
+          style={{ marginBottom: 14 }}
+        />
+        <button type="submit">Add General Mock</button>
       </form>
 
       <h3 style={{ marginTop: 24 }}>Users</h3>
