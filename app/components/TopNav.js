@@ -55,7 +55,21 @@ export default function TopNav() {
     <div className="topnav">
       <div className="topnav-inner">
         <Link href="/dashboard" className="topnav-logo">
-          Bio<span>Path</span>
+          <span className="topnav-mark" aria-hidden="true">
+            <svg viewBox="0 0 48 48" width="18" height="18">
+              <path
+                d="M4,24 L13,24 L17,10 L24,40 L29,24 L44,24"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="4.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <span className="topnav-word">
+            Bio<span>Path</span>
+          </span>
         </Link>
 
         <div className="topnav-links">

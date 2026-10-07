@@ -137,7 +137,7 @@ export default function AdminHome() {
     setUsers(data || []);
   }
 
-    async function handleDeleteUser(u) {
+  async function handleDeleteUser(u) {
     const label = u.full_name || '(no name)';
     if (
       !window.confirm(
@@ -158,6 +158,7 @@ export default function AdminHome() {
     }
     setUsers((prev) => prev.filter((x) => x.id !== u.id));
   }
+
   async function handleAddCourse(e) {
     e.preventDefault();
     setError('');
@@ -329,7 +330,7 @@ export default function AdminHome() {
           <span>
             <strong>{mock.title}</strong>
             <br />
-            <span style={{ color: '#666', fontSize: '0.85rem' }}>
+            <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
               {generalCounts[mock.id] || 0} questions · {mock.duration_minutes} min
             </span>
           </span>
@@ -372,7 +373,7 @@ export default function AdminHome() {
         <button type="submit">Add General Mock</button>
       </form>
 
-            <h3 style={{ marginTop: 24 }}>Users</h3>
+      <h3 style={{ marginTop: 24 }}>Users</h3>
       {userError && <div className="error">{userError}</div>}
       {users.map((u) => (
         <div
@@ -390,7 +391,7 @@ export default function AdminHome() {
             style={{ flex: 1, display: 'flex', justifyContent: 'space-between', gap: 12 }}
           >
             <span>{u.full_name || '(no name)'}</span>
-            <span style={{ color: '#666', fontSize: '0.85rem' }}>{u.role}</span>
+            <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{u.role}</span>
           </Link>
           {u.id !== myId && u.role !== 'admin' && (
             <button

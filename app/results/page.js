@@ -64,7 +64,7 @@ export default function MyResults() {
             <p>
               Score: {r.score} / {r.total_questions} ({pct}%)
             </p>
-            <p style={{ color: '#666', fontSize: '0.85rem' }}>{date}</p>
+            <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{date}</p>
           </div>
         );
       })}

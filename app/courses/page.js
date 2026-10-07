@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
+import { courseIcon, courseStatus, ACCENTS } from '../../lib/courseMeta';
 
 export default function Courses() {
   const [courses, setCourses] = useState([]);
@@ -97,9 +98,9 @@ export default function Courses() {
   }
 
   return (
-    <div className="container">
+    <div className="container" style={{ maxWidth: 820 }}>
       <h1>Courses</h1>
-      <p className="subtitle">All available courses.</p>
+      <p className="subtitle">Pick a course to practice questions, read materials or take a mock exam.</p>
 
       {courses.length === 0 && (
         <div className="empty-state">
@@ -111,22 +112,36 @@ export default function Courses() {
         </div>
       )}
 
-      {courses.map((course) => {
-        const pct = progressByCourse[course.id];
-        return (
-          <Link key={course.id} href={`/courses/${course.id}`}>
-            <button style={{ marginBottom: 10, textAlign: 'left' }}>
-              {course.name}
-              {pct !== null && pct !== undefined && (
-                <span style={{ float: 'right' }}>{pct}%</span>
-              )}
-            </button>
-          </Link>
-        );
-      })}
+      <div className="course-grid">
+        {courses.map((course, i) => {
+          const pct = progressByCourse[course.id];
+          const status = courseStatus(pct);
+          return (
+            <Link
+              key={course.id}
+              href={`/courses/${course.id}`}
+              className="course-card"
+              style={{ '--accent': ACCENTS[i % ACCENTS.length] }}
+            >
+              <div className="course-card-top">
+                <span className="course-card-icon">{courseIcon(course.name)}</span>
+                <span className={`course-chip tone-${status.tone}`}>{status.label}</span>
+              </div>
+              <div className="course-card-name">{course.name}</div>
+              <div className="course-card-bar">
+                <div className="course-card-fill" style={{ width: `${pct || 0}%` }} />
+              </div>
+              <div className="course-card-foot">
+                <span>{pct !== null && pct !== undefined ? `${pct}% mastered` : 'No mocks yet'}</span>
+                <span className="course-card-go">Open →</span>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
 
       <Link href="/results">
-        <button className="btn-outline" style={{ marginTop: 10 }}>
+        <button className="btn-outline" style={{ marginTop: 18 }}>
           My Results
         </button>
       </Link>

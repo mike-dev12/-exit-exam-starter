@@ -145,7 +145,7 @@ export default function MockQuiz() {
       <div className="container">
         <h1>Quiz Complete</h1>
         {autoSubmitted && (
-          <p style={{ color: '#dc2626' }}>Time's up! Your quiz was submitted automatically.</p>
+          <p style={{ color: '#f87171' }}>Time's up! Your quiz was submitted automatically.</p>
         )}
         <p className="subtitle">
           You scored {score} out of {questions.length}.
@@ -178,7 +178,7 @@ export default function MockQuiz() {
         <span
           style={{
             fontWeight: 'bold',
-            color: timeRunningLow ? '#dc2626' : '#1a1a1a',
+            color: timeRunningLow ? '#f87171' : 'var(--ink)',
           }}
         >
           ⏱ {formatTime(timeLeft)}
@@ -214,8 +214,6 @@ export default function MockQuiz() {
             style={{
               marginTop: 12,
               padding: 12,
-              background: '#fff7ed',
-              border: '1px solid #fdba74',
               borderRadius: 8,
               fontSize: '0.9rem',
             }}
