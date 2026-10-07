@@ -2316,3 +2316,131 @@ input[type='file']::file-selector-button:hover {
     animation: none;
   }
 }
+
+/* =========================================================
+   Login page: fit the screen + clearer BioPath wordmark
+   (sizes scale with the window height, so it stays on one screen)
+   ========================================================= */
+.auth-page,
+.auth-brand {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.auth-brand {
+  padding: clamp(22px, 4.5vh, 44px) clamp(28px, 5vw, 64px) clamp(16px, 3vh, 32px);
+}
+
+/* "Bio" white, "Path" bright aqua so the two halves are easy to tell apart */
+.auth-logo .auth-wordmark {
+  font-size: clamp(1.25rem, 3vh, 1.5rem);
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.auth-logo .auth-wordmark span {
+  color: #5eead4;
+  font-weight: 700;
+}
+
+.auth-logo {
+  margin-bottom: clamp(14px, 3.5vh, 34px);
+}
+
+.auth-logo .brand-mark {
+  width: clamp(40px, 6vh, 52px);
+  height: clamp(40px, 6vh, 52px);
+}
+
+.auth-eyebrow {
+  font-size: clamp(0.7rem, 1.6vh, 0.85rem);
+  margin-bottom: clamp(8px, 2vh, 18px);
+}
+
+.auth-headline {
+  font-size: clamp(1.9rem, min(3.6vw, 6.4vh), 3.2rem);
+  margin-bottom: clamp(10px, 2.4vh, 22px);
+}
+
+.auth-headline span {
+  color: #5eead4;
+}
+
+.auth-brand-text {
+  font-size: clamp(0.85rem, 1.9vh, 1rem);
+  line-height: 1.55;
+  margin-bottom: clamp(12px, 2.6vh, 24px);
+}
+
+.auth-pill {
+  font-size: clamp(0.7rem, 1.6vh, 0.8rem);
+  padding: clamp(4px, 0.9vh, 7px) 12px;
+}
+
+.auth-signal {
+  height: clamp(22px, 4vh, 34px);
+}
+
+.auth-brand-footer {
+  margin-top: clamp(8px, 1.6vh, 20px);
+}
+
+/* Right side: tighter card */
+.auth-panel {
+  padding: clamp(16px, 3vh, 36px) 24px;
+}
+
+.auth-card {
+  max-width: 420px;
+  padding: clamp(22px, 4vh, 38px) clamp(22px, 2.6vw, 34px);
+}
+
+.auth-card h2 {
+  font-size: clamp(1.25rem, 3vh, 1.5rem);
+}
+
+.auth-card-subtitle {
+  font-size: 0.88rem;
+  margin-bottom: clamp(14px, 3vh, 26px);
+}
+
+.auth-card input {
+  padding-top: clamp(9px, 1.4vh, 12px);
+  padding-bottom: clamp(9px, 1.4vh, 12px);
+  margin-bottom: 10px;
+}
+
+.auth-input-wrap {
+  margin-bottom: clamp(8px, 1.6vh, 14px);
+}
+
+.auth-input-wrap input {
+  margin-bottom: 0;
+}
+
+.auth-card .auth-label {
+  margin-bottom: 4px;
+}
+
+.auth-card .auth-submit {
+  padding-top: clamp(10px, 1.6vh, 13px);
+  padding-bottom: clamp(10px, 1.6vh, 13px);
+}
+
+.auth-toggle {
+  margin-top: clamp(10px, 2vh, 18px);
+}
+
+/* Very short windows: hide the extra decoration so everything fits */
+@media (max-height: 760px) {
+  .auth-signal,
+  .auth-pills {
+    display: none;
+  }
+}
+
+@media (max-height: 640px) {
+  .auth-brand-text {
+    display: none;
+  }
+}
