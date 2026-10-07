@@ -18,7 +18,7 @@ const sans = Inter({
 });
 
 export const metadata = {
-  title: 'BioPath — Biomedical Engineering Exit Exam Preparation',
+  title: 'BioPath',
   description:
     'Course-mapped practice questions and mock exams for final-year biomedical engineering students preparing for their exit exam.',
 };

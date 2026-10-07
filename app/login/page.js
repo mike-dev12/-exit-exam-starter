@@ -59,6 +59,133 @@ function EyeIcon({ open }) {
   );
 }
 
+
+// ---------- Biomedical decoration (login page, left side) ----------
+const svgProps = {
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.6,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+};
+
+function HeartPulseIcon() {
+  return (
+    <svg {...svgProps}>
+      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z" />
+      <path d="M5 12h3l1.5-2.5 2.5 5 1.5-2.5H19" />
+    </svg>
+  );
+}
+
+function MicroscopeIcon() {
+  return (
+    <svg {...svgProps}>
+      <path d="M6 18h8" />
+      <path d="M3 22h18" />
+      <path d="M14 22a7 7 0 1 0 0-14h-1" />
+      <path d="M9 14h2" />
+      <path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z" />
+      <path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3" />
+    </svg>
+  );
+}
+
+function StethoscopeIcon() {
+  return (
+    <svg {...svgProps}>
+      <path d="M11 2v2" />
+      <path d="M5 2v2" />
+      <path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1" />
+      <path d="M8 15a6 6 0 0 0 12 0v-3" />
+      <circle cx="20" cy="10" r="2" />
+    </svg>
+  );
+}
+
+function AtomIcon() {
+  return (
+    <svg {...svgProps}>
+      <circle cx="12" cy="12" r="1.6" />
+      <ellipse cx="12" cy="12" rx="10" ry="4" />
+      <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)" />
+      <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)" />
+    </svg>
+  );
+}
+
+function FlaskIcon() {
+  return (
+    <svg {...svgProps}>
+      <path d="M9 3h6" />
+      <path d="M10 3v6.5L4.5 19a2 2 0 0 0 1.7 3h11.6a2 2 0 0 0 1.7-3L14 9.5V3" />
+      <path d="M7 15h10" />
+    </svg>
+  );
+}
+
+// Rotating DNA helix: each rung flips in turn, which reads as a 3D twist
+function DnaHelix() {
+  const rungs = Array.from({ length: 11 }, (_, i) => i);
+  return (
+    <svg className="bio-dna-svg" viewBox="0 0 80 230" aria-hidden="true">
+      {rungs.map((i) => (
+        <g
+          key={i}
+          className="dna-rung"
+          style={{ animationDelay: `${-i * 0.32}s`, transformOrigin: `40px ${12 + i * 20}px` }}
+        >
+          <line x1="14" y1={12 + i * 20} x2="66" y2={12 + i * 20} />
+          <circle cx="14" cy={12 + i * 20} r="4.2" className="dna-dot-a" />
+          <circle cx="66" cy={12 + i * 20} r="4.2" className="dna-dot-b" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+// One heartbeat = 200 units wide; the monitor repeats it 4 times
+const ECG_BEAT = (x) =>
+  `L${x + 60},40 L${x + 70},34 L${x + 80},40 L${x + 100},40 L${x + 108},47 L${x + 116},6 ` +
+  `L${x + 126},72 L${x + 134},40 L${x + 152},40 L${x + 164},29 L${x + 178},40 L${x + 200},40`;
+const ECG_PATH = 'M0,40 ' + [0, 200, 400, 600].map(ECG_BEAT).join(' ');
+
+function VitalsMonitor() {
+  return (
+    <div className="vitals reveal reveal-5" aria-hidden="true">
+      <div className="vitals-top">
+        <span className="vitals-heart">
+          <HeartPulseIcon />
+        </span>
+        <div className="vitals-read">
+          <span className="vitals-num">72</span>
+          <span className="vitals-unit">BPM</span>
+        </div>
+        <span className="vitals-sep" />
+        <div className="vitals-read">
+          <span className="vitals-num">98</span>
+          <span className="vitals-unit">SpO₂ %</span>
+        </div>
+        <span className="vitals-sep" />
+        <div className="vitals-read">
+          <span className="vitals-num">120/80</span>
+          <span className="vitals-unit">mmHg</span>
+        </div>
+      </div>
+      <div className="ecg-window">
+        <div className="ecg-track">
+          {[0, 1].map((k) => (
+            <svg key={k} viewBox="0 0 800 80" preserveAspectRatio="none">
+              <path d={ECG_PATH} />
+            </svg>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -241,6 +368,28 @@ function LoginForm() {
           <span className="auth-ring auth-ring-4" />
         </div>
 
+        <div className="bio-strip" aria-hidden="true">
+          <span className="bio-chip" style={{ animationDelay: '0s' }}>
+            <HeartPulseIcon />
+          </span>
+          <span className="bio-chip" style={{ animationDelay: '-1s' }}>
+            <MicroscopeIcon />
+          </span>
+          <span className="bio-chip" style={{ animationDelay: '-2s' }}>
+            <StethoscopeIcon />
+          </span>
+          <span className="bio-chip" style={{ animationDelay: '-3s' }}>
+            <AtomIcon />
+          </span>
+          <span className="bio-chip" style={{ animationDelay: '-4s' }}>
+            <FlaskIcon />
+          </span>
+        </div>
+
+        <div className="bio-dna" aria-hidden="true">
+          <DnaHelix />
+        </div>
+
         <div className="auth-brand-content">
           <div className="auth-logo reveal reveal-1">
             <BrandMark />
@@ -275,19 +424,7 @@ function LoginForm() {
           </div>
         </div>
 
-        <div className="auth-signal" aria-hidden="true">
-          <svg viewBox="0 0 400 50" preserveAspectRatio="none">
-            <path
-              className="ecg-path"
-              d="M0,25 L130,25 L142,6 L156,44 L168,25 L260,25 L272,10 L284,40 L296,25 L400,25"
-              stroke="rgba(255,255,255,0.3)"
-              strokeWidth="1.6"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
+        <VitalsMonitor />
 
         <div className="auth-brand-footer">© 2026 BioPath. All rights reserved.</div>
       </div>
