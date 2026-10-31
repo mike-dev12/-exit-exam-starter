@@ -201,6 +201,7 @@ export default function AdminUserDetail() {
       {targetProfile?.role !== 'admin' && (
         <>
           <h3 style={{ marginTop: 24 }}>Danger zone</h3>
+          {message && <div className="error">{message}</div>}
           <button className="btn-danger" disabled={deleting} onClick={handleDeleteUser}>
             {deleting ? 'Deleting...' : 'Delete this user'}
           </button>

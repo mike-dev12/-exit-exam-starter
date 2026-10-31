@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
+
   if (!url || !serviceKey) {
     return NextResponse.json(
       { error: 'Server is missing SUPABASE_SERVICE_ROLE_KEY. Add it to .env.local (and Vercel) and restart.' },
