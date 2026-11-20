@@ -335,14 +335,16 @@ export default function Dashboard() {
               >
                 <div className="course-card-top">
                   <span className="course-card-icon">{courseIcon(course.name)}</span>
-                  <span className={`course-chip tone-${status.tone}`}>{status.label}</span>
+                  {pct !== null && pct !== undefined && (
+                    <span className={`course-chip tone-${status.tone}`}>{status.label}</span>
+                  )}
                 </div>
                 <div className="course-card-name">{course.name}</div>
                 <div className="course-card-bar">
                   <div className="course-card-fill" style={{ width: `${pct || 0}%` }} />
                 </div>
                 <div className="course-card-foot">
-                  <span>{pct !== null && pct !== undefined ? `${pct}% mastered` : 'No mocks yet'}</span>
+                  <span>{pct !== null && pct !== undefined ? `${pct}% mastered` : ''}</span>
                   <span className="course-card-go">Continue →</span>
                 </div>
               </Link>
