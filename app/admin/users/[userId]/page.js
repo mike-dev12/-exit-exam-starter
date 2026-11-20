@@ -15,6 +15,7 @@ export default function AdminUserDetail() {
   const [role, setRole] = useState('student');
   const [message, setMessage] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [perf, setPerf] = useState(null);
   const router = useRouter();
   const params = useParams();
   const userId = params.userId;
@@ -65,10 +66,83 @@ export default function AdminUserDetail() {
         .eq('lecturer_id', userId);
       setLecturerCourseIds(new Set((lc || []).map((r) => r.course_id)));
 
+      await loadPerformance(courses || []);
+
       setLoading(false);
     }
     load();
   }, [userId, router]);
+
+  // Every mock attempt this person has made, across ALL courses and
+  // general mocks, rolled up into one overall picture.
+  async function loadPerformance(courses) {
+    const { data: rows } = await supabase
+      .from('results')
+      .select('id, mock_id, score, total_questions, taken_at')
+      .eq('student_id', userId)
+      .order('taken_at', { ascending: false });
+    const results = rows || [];
+
+    if (results.length === 0) {
+      setPerf({ attempts: 0 });
+      return;
+    }
+
+    const mockIds = [...new Set(results.map((r) => r.mock_id))];
+    const { data: mockRows } = await supabase
+      .from('mocks')
+      .select('id, title, course_id, is_general')
+      .in('id', mockIds);
+    const mockById = {};
+    (mockRows || []).forEach((m) => {
+      mockById[m.id] = m;
+    });
+    const courseName = {};
+    courses.forEach((c) => {
+      courseName[c.id] = c.name;
+    });
+
+    const attempts = results.map((r) => {
+      const m = mockById[r.mock_id];
+      const pct = r.total_questions
+        ? Math.round((r.score / r.total_questions) * 100)
+        : 0;
+      const where = !m
+        ? 'Deleted mock'
+        : m.is_general
+        ? 'General mocks'
+        : courseName[m.course_id] || 'Unknown course';
+      return {
+        id: r.id,
+        title: m ? m.title : '(deleted mock)',
+        where,
+        score: r.score,
+        total: r.total_questions,
+        pct,
+        taken_at: r.taken_at,
+      };
+    });
+
+    const groups = {};
+    attempts.forEach((a) => {
+      if (!groups[a.where]) groups[a.where] = [];
+      groups[a.where].push(a.pct);
+    });
+    const avgOf = (list) =>
+      Math.round(list.reduce((x, y) => x + y, 0) / list.length);
+    const byCourse = Object.entries(groups)
+      .map(([name, list]) => ({ name, attempts: list.length, avg: avgOf(list) }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    setPerf({
+      attempts: attempts.length,
+      avg: avgOf(attempts.map((a) => a.pct)),
+      best: Math.max(...attempts.map((a) => a.pct)),
+      last: attempts[0].taken_at,
+      byCourse,
+      recent: attempts.slice(0, 30),
+    });
+  }
 
   async function toggleStudentCourse(courseId) {
     const isAssigned = studentCourseIds.has(courseId);
@@ -162,6 +236,56 @@ export default function AdminUserDetail() {
         {targetProfile?.university || '—'} | Department:{' '}
         {targetProfile?.department || '—'} | Year: {targetProfile?.year || '—'}
       </p>
+
+      <h3 style={{ marginTop: 24 }}>Overall Performance</h3>
+      {perf && perf.attempts === 0 && (
+        <p className="subtitle">No mock attempts yet.</p>
+      )}
+      {perf && perf.attempts > 0 && (
+        <>
+          <p className="subtitle">
+            {perf.attempts} attempt{perf.attempts === 1 ? '' : 's'} · {perf.avg}% average ·
+            best {perf.best}% · last activity {new Date(perf.last).toLocaleString()}
+          </p>
+          <div className="progress-bar-track" style={{ marginBottom: 16 }}>
+            <div className="progress-bar-fill" style={{ width: `${perf.avg}%` }} />
+          </div>
+
+          <h4 style={{ marginTop: 16 }}>By course</h4>
+          {perf.byCourse.map((row) => (
+            <div
+              key={row.name}
+              className="question-card"
+              style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}
+            >
+              <span>{row.name}</span>
+              <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
+                {row.attempts} attempt{row.attempts === 1 ? '' : 's'} · {row.avg}%
+              </span>
+            </div>
+          ))}
+
+          <h4 style={{ marginTop: 16 }}>Recent attempts</h4>
+          {perf.recent.map((a) => (
+            <div
+              key={a.id}
+              className="question-card"
+              style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}
+            >
+              <span>
+                <strong>{a.title}</strong>
+                <br />
+                <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
+                  {a.where} · {new Date(a.taken_at).toLocaleString()}
+                </span>
+              </span>
+              <span>
+                {a.score}/{a.total} ({a.pct}%)
+              </span>
+            </div>
+          ))}
+        </>
+      )}
 
       <h3 style={{ marginTop: 24 }}>Role</h3>
       {message && <div className="subtitle">{message}</div>}
