@@ -24,6 +24,9 @@ export default function AdminHome() {
   const [userError, setUserError] = useState('');
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [myId, setMyId] = useState(null);
+  const [editingCourseId, setEditingCourseId] = useState(null);
+  const [editCourseName, setEditCourseName] = useState('');
+  const [savingCourse, setSavingCourse] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -176,6 +179,47 @@ export default function AdminHome() {
     loadCourses();
   }
 
+  function startEditCourse(course) {
+    setCourseListError('');
+    setEditingCourseId(course.id);
+    setEditCourseName(course.name);
+  }
+
+  async function handleSaveCourse(course) {
+    const name = editCourseName.trim();
+    if (!name) {
+      setCourseListError('Course name cannot be empty.');
+      return;
+    }
+    setCourseListError('');
+    setSavingCourse(true);
+    const { data, error: updateError } = await supabase
+      .from('courses')
+      .update({ name })
+      .eq('id', course.id)
+      .select();
+    setSavingCourse(false);
+
+    if (updateError) {
+      setCourseListError(updateError.message);
+      return;
+    }
+    // Row-level security can block an update without an error, so check.
+    if (!data || data.length === 0) {
+      setCourseListError(
+        'The name was not saved. Run supabase/admin-edit-and-tracking.sql ' +
+          'in the Supabase SQL Editor first, then try again.'
+      );
+      return;
+    }
+    setCourses((prev) =>
+      prev
+        .map((c) => (c.id === course.id ? { ...c, name } : c))
+        .sort((a, b) => a.name.localeCompare(b.name))
+    );
+    setEditingCourseId(null);
+  }
+
   async function handleDeleteCourse(course) {
     const confirmed = window.confirm(
       `Delete "${course.name}"?\n\n` +
@@ -282,15 +326,67 @@ export default function AdminHome() {
             gap: 12,
           }}
         >
-          <span>{course.name}</span>
-          <button
-            className="btn-danger"
-            style={{ width: 'auto', padding: '8px 14px' }}
-            disabled={deletingId === course.id}
-            onClick={() => handleDeleteCourse(course)}
-          >
-            {deletingId === course.id ? 'Deleting...' : 'Delete'}
-          </button>
+          {editingCourseId === course.id ? (
+            <>
+              <input
+                type="text"
+                value={editCourseName}
+                autoFocus
+                onChange={(e) => setEditCourseName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveCourse(course);
+                  if (e.key === 'Escape') setEditingCourseId(null);
+                }}
+                style={{ flex: 1, marginBottom: 0 }}
+              />
+              <span style={{ display: 'flex', gap: 8 }}>
+                <button
+                  style={{ width: 'auto', padding: '8px 14px' }}
+                  disabled={savingCourse}
+                  onClick={() => handleSaveCourse(course)}
+                >
+                  {savingCourse ? 'Saving...' : 'Save'}
+                </button>
+                <button
+                  className="btn-muted"
+                  style={{ width: 'auto', padding: '8px 14px' }}
+                  disabled={savingCourse}
+                  onClick={() => setEditingCourseId(null)}
+                >
+                  Cancel
+                </button>
+              </span>
+            </>
+          ) : (
+            <>
+              <span>{course.name}</span>
+              <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <Link href={`/lecturer/courses/${course.id}`}>
+                  <button
+                    className="btn-outline"
+                    style={{ width: 'auto', padding: '8px 14px' }}
+                  >
+                    Manage
+                  </button>
+                </Link>
+                <button
+                  className="btn-outline"
+                  style={{ width: 'auto', padding: '8px 14px' }}
+                  onClick={() => startEditCourse(course)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn-danger"
+                  style={{ width: 'auto', padding: '8px 14px' }}
+                  disabled={deletingId === course.id}
+                  onClick={() => handleDeleteCourse(course)}
+                >
+                  {deletingId === course.id ? 'Deleting...' : 'Delete'}
+                </button>
+              </span>
+            </>
+          )}
         </div>
       ))}
 
